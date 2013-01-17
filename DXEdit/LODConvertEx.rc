@@ -1,0 +1,257 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\LODConvertEx.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\LODConvertEx.ico"
+IDI_SURFACE             ICON                    "res\\environment.ico"
+IDI_TEXTURE             ICON                    "res\\photo_scenery.ico"
+IDI_GENERAL             ICON                    "res\\text_align_justified.ico"
+IDI_HEADER              ICON                    "res\\text_rich_colored.ico"
+IDI_ROOT                ICON                    "res\\text_tree.ico"
+IDI_DOF                 ICON                    "res\\transform.ico"
+IDI_ENDDOF              ICON                    "res\\transform2.ico"
+IDI_NODE                ICON                    "res\\media_stop.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About LODConvertEx"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "LODConvertEx Version 1.0",IDC_STATIC,40,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_LODCONVERTEX_DIALOG DIALOGEX 0, 0, 322, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "LODConvertEx"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,265,159,50,16
+    GROUPBOX        "DXL Encoder",IDC_STATIC,7,7,308,82
+    GROUPBOX        "DXL Decoder",IDC_STATIC,7,91,308,62
+    EDITTEXT        IDC_ENCODER_INPUT_EDIT,113,24,137,14,ES_AUTOHSCROLL
+    LTEXT           "File input name:",IDC_STATIC,52,27,52,8
+    PUSHBUTTON      "Choose...",IDC_ENCODER_INPUT_CHOOSE_BTN,255,24,50,14
+    PUSHBUTTON      "Encode",IDC_ENCODE,137,68,80,14
+    EDITTEXT        IDC_ENCODER_OUTPUT_EDIT,113,44,137,14,ES_AUTOHSCROLL
+    LTEXT           "File output name:",IDC_STATIC,52,47,57,8
+    PUSHBUTTON      "Choose...",IDC_ENCODER_OUTPUT_CHOOSE_BTN,255,44,50,14
+    EDITTEXT        IDC_DECODER_EDIT,109,109,137,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Choose...",IDC_DECODER_INPUT_CHOOSE_BTN,251,109,50,14
+    LTEXT           "File name:",IDC_STATIC,60,110,34,8
+    PUSHBUTTON      "Decode",IDC_DECODE,135,131,80,14
+    ICON            IDI_DOF,IDC_STATIC,19,29,21,20
+    ICON            IDI_ENDDOF,IDC_STATIC,19,111,21,20
+END
+
+IDD_DXL_STRUCTURE DIALOGEX 0, 0, 345, 226
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "DXL Structure"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,288,205,50,14
+    CONTROL         "",IDC_DXL_TREE,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    WS_BORDER | WS_TABSTOP,7,80,331,112
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDFRAME,7,197,331,1
+    LTEXT           "General Information",IDC_STATIC,7,3,65,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,76,7,259,1
+    LTEXT           "DXL Structure",IDC_STATIC,7,67,45,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,56,70,282,1
+    LTEXT           "Total number of Surface nodes:",IDC_STATIC,189,18,102,8
+    LTEXT           "Total number of Texture nodes:",IDC_STATIC,189,32,103,8
+    LTEXT           "Total number of DOF nodes:",IDC_STATIC,189,47,92,8
+    LTEXT           "Static",IDC_SURFACE_STATIC,297,18,33,8
+    LTEXT           "Static",IDC_TEXTURE_STATIC,297,32,33,8
+    LTEXT           "Static",IDC_DOF_STATIC,297,47,33,8
+    LTEXT           "File dimension:",IDC_STATIC,16,23,48,8
+    LTEXT           "Static",IDC_FILESIZE_STATIC,74,24,83,8
+    LTEXT           "Total number of vertexes:",IDC_STATIC,16,41,85,8
+    LTEXT           "Static",IDC_VERTEX_NUMBER_STATIC,112,41,56,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDVERT,175,15,1,49
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "LODConvertEx.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "LODConvertEx.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_LODCONVERTEX_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 315
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 175
+    END
+
+    IDD_DXL_STRUCTURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 338
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 219
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About LODConvertEx..."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\LODConvertEx.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

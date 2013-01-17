@@ -1,0 +1,52 @@
+#pragma	once
+
+#include	"DxNodes.h"
+#include	"DxDefines.h"
+#include	"lodconvert.h"
+
+typedef	struct { double	x,y,z;} DOUBLEVECTOR ;
+
+
+void	ClearModel(E_Object *Obj);
+void	E_CalculateFaceNormal(DXTriangle *Node);
+void	DeIndexModel(void *Source, E_Object *Obj);
+void	E_SetupLights(E_Object *Obj, DWORD ID, D3DXMATRIX *State, D3DVECTOR *Pos);
+void	E_DrawModel(E_Object *Obj, DWORD ID, D3DXMATRIX *State, D3DVECTOR *Pos, bool FrameMode=false);
+DWORD	E_FindVertex(E_Object *Obj, D3DVECTOR *Search, CEditing *EditNode, D3DVECTOR *CoordMask);
+void	E_ExtendedSelect(E_Object *Obj, CSelectList *List, DXNode *Search, bool Select);
+void	E_SetScale(float Scale);
+void	E_SelectCommonVertex(bool Set, E_Object *Obj, CSelectList *List, D3DVERTEXEX *Vertex);
+void	E_SelectCommonSurface(CSelectList *List, DXFlagsType *Flags=NULL , DWORD *ZBias=NULL , float *SIndex=NULL , DWORD *Tex1=NULL , DWORD *Tex2=NULL, DWORD *SwitchNr=NULL,  DWORD *SwitchMask=NULL, DWORD *SpecularDefault=NULL );
+D3DVERTEXEX	*	E_SelectVertexInSurfaces(E_Object *Obj, CSelectList *List, bool Selection, bool SingleVertex);
+void	E_SelectNode(CSelectList *List, DXNode *Node, bool Select);
+void	E_CopySelection(CSelectList *List);
+void	E_CutSelection(E_Object *Obj, CSelectList *List);
+void	E_PasteSelection(E_Object *Obj, CSelectList *List, DXNode *PastePoint);
+bool	E_CheckBalancedSelection(CSelectList *List);
+void	E_MirrorSelection(CSelectList *List);
+void	E_BackFaceSelection(CSelectList *List);
+void	E_TranslateSelection(CSelectList *List, float	MoveX, float MoveY, float MoveZ);
+void	E_MakeModelCopy(CSelectList *List, E_Object *Source, E_Object *Backup);
+void	E_UpdateFlags(CSelectList *List, DXFlagsType Flags, DXFlagsType FlagMask);
+void	E_SetMinMaxSI(CSelectList *List, float *Min, float *Max, float *Value);
+void	E_SetMinMaxZB(CSelectList *List, DWORD *Min, DWORD *Max, DWORD *Value);
+void	E_TranslateVertices(CSelectList *List, float	MoveX, float MoveY, float MoveZ);
+void	E_SetVertices(CSelectList *List, bool OnlySelection=false, DWORD *Diffuse=NULL, DWORD *Specular=NULL, DWORD *DAlpha=NULL, DWORD *SAlpha=NULL);
+void	E_ScaleVertices(CSelectList *List, float	ScaleX, float ScaleY, float ScaleZ);
+void	E_OffsetTexture(CSelectList *List, float U, float V);
+void	E_ScaleTexture(CSelectList *List, float U, float V);
+void	E_RotateTexture(CSelectList *List, float Angle, float RefV, float RefU);
+void	E_BlendTexture(CSelectList *List, D3DVERTEXEX	*VRef);
+void	E_ClearTexture(E_Object *Obj, DWORD TexNr);
+void	E_AssignTexture(CSelectList *List, DWORD TexNr);
+void	E_CalculateModelVNormals(E_Object *Obj, float Limit, bool SelectList=false, CSelectList *List=NULL);
+void	E_FlipTexture(CSelectList *List, bool U=false, bool V=false);
+void	E_MakeAllSpcularity(CSelectList *List, DWORD Color);
+void	E_DrawLight(DXLightType *Light, D3DXMATRIX *State, D3DVECTOR *Pos);
+void	E_AddStaticLight(E_Object *Obj, DXLightType *Light, DWORD LightID, bool Clear=false);
+
+
+
+
+
+

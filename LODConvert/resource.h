@@ -1,0 +1,126 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by LODConvert.rc
+//
+#define IDS_LOD_OPEN                    1
+#define IDD_LODINFO                     9
+#define IDM_ABOUTBOX                    0x0010
+#define IDD_ABOUTBOX                    100
+#define IDS_ABOUTBOX                    101
+#define IDD_TOOLS                       101
+#define IDD_LODCONVERTEX_DIALOG         102
+#define IDR_HTML_COLORTOOL              103
+#define IDP_OLE_INIT_FAILED             104
+#define IDR_HTML_VBLIST                 105
+#define IDR_HTML_DBCONVERTER            106
+#define IDD_VBASKCLASS                  107
+#define IDR_MAINFRAME                   128
+#define IDR_SMALLFRAME                  128
+#define IDD_DXL_STRUCTURE               129
+#define IDS_DXM_SAVE                    129
+#define IDR_LIMITEDFRAME                129
+#define IDR_FULLFRAME                   129
+#define IDR_LODConvertTYPE              130
+#define IDI_SURFACE                     131
+#define IDI_TEXTURE                     132
+#define IDI_GENERAL                     133
+#define IDI_HEADER                      134
+#define IDI_ROOT                        135
+#define IDI_DOF                         136
+#define IDI_ENDDOF                      137
+#define IDI_NODE                        138
+#define IDD_DXLLIST                     140
+#define IDD_COLORTOOL                   141
+#define IDD_VBLIST                      142
+#define IDD_DBCONVERT                   143
+#define IDD_ASKBOX                      144
+#define IDC_ENCODER_INPUT_EDIT          1000
+#define IDC_ENCODER_INPUT_CHOOSE_BTN    1002
+#define IDC_ENCODE                      1003
+#define IDC_ENCODER_OUTPUT_EDIT         1004
+#define IDC_ENCODER_OUTPUT_CHOOSE_BTN   1005
+#define IDC_DECODER_EDIT                1006
+#define IDC_DXL_TREE                    1007
+#define IDC_SURFACE_STATIC              1008
+#define IDC_ASKLABEL                    1008
+#define IDC_DECODER_INPUT_CHOOSE_BTN    1009
+#define IDC_TEXTURE_STATIC              1009
+#define IDC_DECODE                      1010
+#define IDC_DOF_STATIC                  1010
+#define IDC_FILESIZE_STATIC             1011
+#define IDC_VERTEX_NUMBER_STATIC        1012
+#define IDC_DXLIST                      1013
+#define IDC_LODLIST                     1014
+#define IDC_LODLIST2                    1015
+#define IDC_DXLIST2                     1016
+#define IDC_DOFLIST                     1018
+#define IDC_DOFROT                      1019
+#define IDC_DOFTRANS                    1020
+#define IDC_SWLIST                      1021
+#define IDC_SWVALUE                     1022
+#define IDC_SWTEXT                      1023
+#define IDC_DISABLECHECK                1025
+#define IDC_SWONBUTTON                  1026
+#define IDC_FRAMESURACE                 1026
+#define IDC_SWOFFBUTTON2                1027
+#define IDC_DOFZERO                     1028
+#define IDC_ALPHASLIDE                  1029
+#define IDC_REDSLIDE                    1030
+#define IDC_GREENDSLIDE                 1031
+#define IDC_BLUESLIDE                   1032
+#define IDC_LDIFFUSE                    1034
+#define IDC_LSPECULAR                   1035
+#define IDC_LAMBIENT                    1036
+#define IDC_VALUES                      1037
+#define IDC_MDIFFUSE                    1038
+#define IDC_MSPECULAR                   1039
+#define IDC_MAMBIENT                    1040
+#define IDC_MEMISSIVE                   1041
+#define IDC_DiscoCheck                  1042
+#define IDC_DiscoCheck2                 1043
+#define IDC_FogCheck                    1043
+#define IDC_REFRESHVB                   1043
+#define IDC_VBLIST                      1044
+#define IDC_NVG                         1044
+#define IDC_CONVTEXT                    1045
+#define IDC_CONVPROGRESS                1046
+#define IDC_NEXTKEY                     1048
+#define IDC_PREVKEY                     1049
+#define IDC_GOTO                        1050
+#define IDC_GOTOVAL                     1051
+#define IDC_DBALL                       1052
+#define IDC_EXIT                        1053
+#define IDC_FRAGDB                      1054
+#define IDC_MAKEDB                      1055
+#define IDC_RADIO1                      1055
+#define IDC_RADIO2                      1056
+#define IDC_ASKTEXT                     1056
+#define IDC_RADIO3                      1057
+#define ID_APP_PLANE                    32771
+#define IDD_LEFT                        32772
+#define IDD_UP                          32773
+#define IDD_DN                          32774
+#define IDD_RIGHT                       32775
+#define IDD_IN                          32776
+#define IDD_OUT                         32777
+#define ID_INFO                         32778
+#define IDC_CULLKEY                     32779
+#define ID_BUTTON32780                  32780
+#define ID_DOFMOVE                      32781
+#define IDD_MULTI                       32783
+#define IDD_ZBIAS                       32784
+#define IDD_COLORKEY                    32786
+#define ID_VBKEY                        32787
+#define ID_DXKEY                        32788
+#define ID_FILESAVE                     32789
+
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        145
+#define _APS_NEXT_COMMAND_VALUE         32790
+#define _APS_NEXT_CONTROL_VALUE         1057
+#define _APS_NEXT_SYMED_VALUE           108
+#endif
+#endif

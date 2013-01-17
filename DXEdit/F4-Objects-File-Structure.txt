@@ -1,0 +1,365 @@
+ACD			52					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	int	13	sint[0]	8	Combat Class		int sint[13];
+	4	int		sint[1]	9	Airframe		
+	8	int		sint[2]	10	IR Signature		
+	12	int		sint[3]	11	1st Sensor	Pop Up	0=ICD, 1=RCD, 2=RWD, 3=VSD,
+	16	int		sint[4]	12	2nd Sensor	Pop Up	4=HTS, 5=TargetingPod,
+	20	int		sint[5]	13	3rd Sensor	Pop Up	6=Radar Homing
+	24	int		sint[6]	14	4th Sensor	Pop Up	-1 = no sensor
+	28	int		sint[7]	15	5th Sensor	Pop Up	
+	32	int		sint[8]	16	1st Sensor Index		Index to link (see above)
+	36	int		sint[9]	17	2nd Sensor Index		-1 = no sensor
+	40	int		sint[10]	18	3rd Sensor Index		
+	44	int		sint[11]	18	4th Sensor Index		
+	48	int		sint[12]	20	5th Sensor Index		
+					21	1st Sensor Index	Button	
+					22	2nd Sensor Index	Button	
+					23	3rd Sensor Index	Button	
+					24	4th Sensor Index	Button	
+					25	5th Sensor Index	Button	
+						Used By	Button	
+								
+CT			81					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	1	id	27	ID		unsigned short int id;
+	2	u int	1	collrad	28	Coll Rad		unsigned int collrad;
+	6	u short	1	colltype	29	Coll Type		unsigned short int colltype;
+	8	u char	6	char1[0]	8	Domain	Pop Up	unsigned char uchar1[6];
+	9	u char		char1[1]	9	Class	Pop Up	unsigned short int unk3;
+	10	u char		char1[2]	10	Type		unsigned int uint1[2];
+	11	u char		char1[3]	11	Sub Type		float floats[3];
+	12	u char		char1[4]	12	Specific		unsigned int uint2[2];
+	13	u char		char1[5]	13	Mode	Pop Up	unsigned short int ushort1[3];
+	14	u short	1	unk3	47	Unk3		unsigned char uchar2[10];
+	16	u int	2	uint1[0]	30	Upd Rate		unsigned short int ushort2[8];
+	20	u int		uint1[1]	31	Upd Tol		unsigned char ftype;
+	24	float	3	floats[0]	24	Bubble Distance		unsigned int foffset;
+	28	float		floats[1]	25	Upd Force Range		
+	32	float		floats[2]	26	Upd Mult		
+	36	u int	2	uint2[0]	32	Damaga Seed		
+	40	u int		uint2[1]	33	Hit Points		
+	44	u short	3	ushort1[0]	34	Maj Rev		
+	46	u short		ushort1[1]	35	Min Rev		
+	48	u short		ushort1[2]	36	Create Priority		
+	50	u char	10	uchar2[0]	37	Manage Dom		
+	51	u char		uchar2[1]	38	Transferable		
+	52	u char		uchar2[2]	39	Private		
+	53	u char		uchar2[3]	40	Tangible		
+	54	u char		uchar2[4]	41	Collidable		
+	55	u char		uchar2[5]	42	Global		
+	56	u char		uchar2[6]	43	Persistant		
+	57	u char		uchar2[7]	44	Unk11a		
+	58	u char		uchar2[8]	45	Unk11b		
+	59	u char		uchar2[9]	46	Unk11c		
+	60	u short	8	ushort2[0]	17	Graphic Data Offset 1		
+	62	u short		ushort2[1]	18	Graphic Data Offset 2		
+	64	u short		ushort2[2]	19	Graphic Data Offset 3		
+	66	u short		ushort2[3]	20	Graphic Data Offset 4		
+	68	u short		ushort2[4]	21	Graphic Data Offset 5		
+	70	u short		ushort2[5]	22	Graphic Data Offset 6		
+	72	u short		ushort2[6]	23	Graphic Data Offset 7		
+	74	u short		ushort2[7]	16	Alt Index		VCD -> ACD, WCD -> SWD
+	76	u char	1	ftype	14	File Type	Pop Up	
+	77	u int	1	foffset	15	File Index		
+					48	File Index	Button	
+					49	Alt Index	Button	
+								
+FCD			60					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	4	ushort1[0]	8	CT Index		unsigned short int ushort1[4];
+	2	u short		ushort1[1]	9	Repair Time		char name[20];
+	4	u short		ushort1[2]	10	Priority		unsigned short int ushort2[2];
+	6	u short		ushort1[3]	11	Flags	Text	unsigned int uint[2];
+	8	char	20	name[20]	36	Name		unsigned char uchar2[20];
+	28	u short	2	ushort2[0]	12	Hit Points		
+	30	u short		ushort2[1]	13	Height		
+	32	u int	2	uint[0]	14	Angle		
+	36	u int		uint[1]	15	Rad Type		
+	40	u char	20	uchar2[0]	16	Detection by Static		
+	41	u char		uchar2[1]	17	Detection by Foot		
+	42	u char		uchar2[2]	18	Detection by Wheeled		
+	43	u char		uchar2[3]	19	Detection by Tracked		
+	44	u char		uchar2[4]	20	Detection by Low Air		
+	45	u char		uchar2[5]	21	Detection by Air		
+	46	u char		uchar2[6]	22	Detection by Naval		
+	47	u char		uchar2[7]	23	Detection by Rail		
+	48	u char		uchar2[8]	24	Damage by None		
+	49	u char		uchar2[9]	25	Damage by AP		
+	50	u char		uchar2[10]	26	Damage by HE		
+	51	u char		uchar2[11]	27	Damage by Bomb		
+	52	u char		uchar2[12]	28	Damage by Incendiary		
+	53	u char		uchar2[13]	29	Damage by Proximity		
+	54	u char		uchar2[14]	30	Damage by Kinetic		
+	55	u char		uchar2[15]	31	Damage by Water		
+	56	u char		uchar2[16]	32	Damage by Chemical		
+	57	u char		uchar2[17]	33	Damage by Nuclear		
+	58	u char		uchar2[18]	34	Damage by Other		
+	59	u char		uchar2[19]	35	Unused		
+					37	CT Index	Button	
+					38	Flags	Button	
+								
+FED			32					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	short	2	ushort1[0]		CT Ref		
+	2			ushort1[1]		Unk1		
+	4	u char	8	uchar[0]		Domain		
+	5			uchar[1]		Class		
+	6			uchar[2]		Type		
+	7			uchar[3]		SubType		
+	8			uchar[4]		Specific		
+	9			uchar[5]		Mode		
+	10			uchar[6]		Pad1		
+	11			uchar[7]		Pad2		
+	12	short	2	ushort2[0]		Heading		
+	14			ushort2[1]		Value		
+	16	float	3	float1[0]		X Offset		
+	20			float1[1]		Y Offset		
+	24			float1[2]		Z Offset		
+	28	short	2	ushort3[0]		Unk2		
+	30			ushort3[1]		Unk3		
+								
+ICD			20					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	float	5	floats[0]	8	Range		float floats[5];
+	4	float		floats[1]	9	FOV		
+	8	float		floats[2]	10	Gimbal Limit		
+	12	float		floats[3]	11	Ground Chance		
+	16	float		floats[4]	12	Flare Chance		
+								
+OCD			54					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	1	ctind	8	CT Index		unsigned short int ctind;
+	2	char	20	name[20]	36	Name		char name[20];
+	22	u short	3	ushort1[0]	9	Data Rate		unsigned short int ushort1[3];
+	24	u short		ushort1[1]	10	Deagg Distance		unsigned char uchar1[20];
+	26	u short		ushort1[2]	11	PHD Index		short int iconid;
+	28	u char	20	uchar1[0]	16	Detection by Static		unsigned char uchar2[2];
+	29	u char		uchar1[1]	17	Detection by Foot		unsigned short int fed;
+	30	u char		uchar1[2]	18	Detection by Wheeled		
+	31	u char		uchar1[3]	19	Detection by Tracked		
+	32	u char		uchar1[4]	20	Detection by Low Air		
+	33	u char		uchar1[5]	21	Detection by Air		
+	34	u char		uchar1[6]	22	Detection by Naval		
+	35	u char		uchar1[7]	23	Detection by Rail		
+	36	u char		uchar1[8]	24	Damage by None		
+	37	u char		uchar1[9]	25	Damage by AP		
+	38	u char		uchar1[10]	26	Damage by HE		
+	39	u char		uchar1[11]	27	Damage by Bomb		
+	40	u char		uchar1[12]	28	Damage by Incendiary		
+	41	u char		uchar1[13]	29	Damage by Proximity		
+	42	u char		uchar1[14]	30	Damage by Kinetic		
+	43	u char		uchar1[15]	31	Damage by Water		
+	44	u char		uchar1[16]	32	Damage by Chemical		
+	45	u char		uchar1[17]	33	Damage by Nuclear		
+	46	u char		uchar1[18]	34	Damage by Other		
+	47	u char		uchar1[19]	35	Unused		
+	48	short	1	iconid	12	Icon ID		
+	50	u char	2	uchar2[0]	13	FED Records		
+	51	u char		uchar2[1]	14	Radar Feature		
+	52	u short	1	fed	15	FED Index		
+					37	CT Index	Button	
+					38	PHD Index	Button	
+					39	FED Index	Button	
+								
+PD			12					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	float	2	floats[0]		X		float floats[2];
+	4	float		floats[1]		Y		unsigned short int ushort[2];
+	8	u short	2	ushort[0]		Type?		
+	10	u short		ushort[1]		Flags?		
+								
+PHD			28					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	1	ocd	8	OCD Index		unsigned short int ocd;
+	2	u char	8	uchar1[0]	17	Type		unsigned char uchar1[8];
+	3	u char		uchar1[1]	18	PD Records		unsigned short int heading;
+	4	u char		uchar1[2]	19	Feature 1		float floats[2];
+	5	u char		uchar1[3]	20	Feature 2		unsigned short int ushort[2];
+	6	u char		uchar1[4]	21	Feature 3		unsigned char uchar2[2];
+	7	u char		uchar1[5]	22	Feature 4		unsigned short int chain;
+	8	u char		uchar1[6]	23	Feature 5		
+	9	u char		uchar1[7]	24	Feature 6		
+	10	u short	1	heading	9	Heading		
+	12	float	2	floats[0]	10	Sin (heading)		
+	16	float		floats[1]	11	Cos (heading)		
+	20	u short	2	ushort[0]	12	PD Index		
+	22	u short		ushort[1]	13	Texture ID		
+	24	u char	2	uchar2[0]	14	Runway Number		
+	25	u char		uchar2[1]	15	L/R Building		
+	26	u short	1	chain	16	Chain		
+					25	Name	Text	
+					26	OCD Index	Button	
+					27	PD Index	Button	
+								
+RCD			56					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	int	2	sint[0]	8	Sound		int sint[2];
+	4	int		sint[1]	9	Image		float floats1[6];
+	8	float	6	floats1[0]	10	RWR Gain		int locktime;
+	12	float		floats1[1]	11	Low RWR Gain		float floats2[5];
+	16	float		floats1[2]	12	Range		
+	20	float		floats1[3]	13	Beam Width		
+	24	float		floats1[4]	14	Azimuth		
+	28	float		floats1[5]	15	Sweep Time		
+	32	int	1	locktime	16	Lock Time		
+	36	float	5	floats2[0]	17	Look Down Range		
+	40	float		floats2[1]	18	ECM Range		
+	44	float		floats2[2]	19	Beam Distance		
+	48	float		floats2[3]	20	Minimum Doppler		
+	52	float		floats2[4]	21	Chaff Chance		
+								
+RWD			20					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	float	5	floats[0]	8	Range		float floats[5];
+	4	float		floats[1]	9	Scan Top	Angle	
+	8	float		floats[2]	10	Scan Bottom	Angle	
+	12	float		floats[3]	11	Scan Left	Angle	
+	16	float		floats[4]	12	Scan Right	Angle	
+								
+SSD			203					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u char	203	uchar[0]	8-37	Weapon Count		unsigned char uchar[203];
+					38-67	Weapon Name	Text	
+					68	Page Tab	Tab Button	
+								
+SWD			52					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	int	1	flags	19	Flags	Text	int flags;
+	4	float	3	floats[0]	12	Drag Coefficient		float floats[3];
+	8	float		floats[1]	13	Weight		int sint1[3];
+	12	float		floats[2]	14	Area		char name[8];
+	16	int	3	sint1[0]	15	X Eject		int sint2[4];
+	20	int		sint1[1]	16	Y Eject		
+	24	int		sint1[2]	17	Z Eject		
+	28	char	8	name[8]	18	Name		
+	36	int	4	sint2[0]	8	Weapon Type	Pop Up	
+	40	int		sint2[1]	9	Air/Ground	Pop Up	
+	44	int		sint2[2]	10	Avionics	Pop Up	
+	48	int		sint2[3]	11	Missile Data		
+					20	Flags	Button	
+								
+UCD			336					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	int	17	sint[0]	8	CT Index		int sint1[17];
+	4	int		sint[1-16]	79-94	Vehicle Quantity		unsigned short int ushort1[16];
+	68	u short	16	ushort1[0-15]	95-110	VCD Index		unsigned char uchar1[128];
+	100	u char	128	uchar1[0+8*c]	111-126	Domain		unsigned short int flags;
+	101	u char		uchar1[1+8*c]	127-142	Class		char name[22];
+	102	u char		uchar1[2+8*c]	143-158	Type		int movetype;
+	103	u char		uchar1[3+8*c]	159-174	Sub Type		unsigned short int ushort2[2];
+	104	u char		uchar1[4+8*c]		Specific		int sint2[2];
+	105	u char		uchar1[5+8*c]		Pad 1	Not needed	unsigned char uchar2[60];
+	106	u char		uchar1[6+8*c]		Pad 2	Not needed	unsigned short int ushort3[4];
+	107	u char		uchar1[7+8*c]		Pad 3	Not needed	
+	228	u short	1	flags	11	Flags		
+	230	char	22	name	175	Name		
+	252	int	1	movetype	12	Move Type	Pop Up	
+	256	u short	2	ushort2[0]	13	Move Speed		
+	258	u short		ushort2[1]	14	Maximum Range		
+	260	int	2	int sint2[0]	9	Fuel Load		
+	264	int		int sint2[1]	10	Fuel Rate		
+	268	u char	60	uchar2[0-15]	63-78	Role Scores		
+	284	u char		uchar2[16]	19	Role	Pop Up	
+	285	u char		uchar2[17-24]	20-27	To Hit		
+	293	u char		uchar2[25-32]	28-35	Strength		
+	301	u char		uchar2[33-40]	36-43	Range		
+	309	u char		uchar2[41-48]	44-51	Detect		
+	317	u char		uchar2[49-59]	52-62	Damage		
+	328	u short	4	ushort3[0]	15	Radar VCL		
+	330	u short		ushort3[1]	16	SSD Index		
+	332	u short		ushort3[2]	17	Unit Icon		
+	334	u short		ushort3[3]	18	PT Index		
+					176	CT Index	Button	
+					177	SSD Index	Button	
+					178	Flags	Button	
+					179-194	Vehicle Type	Button(s)	
+								
+VCD			160					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	3	ushort1[0]	8	CT Index		unsigned short int ushort1[3];
+	2	u short		ushort1[1]	9	Hit Points		unsigned int flags;
+	4	u int	1	flags	10	Flags	Text	char name[16];
+	8	char	15	name[15]	133	Name		int pad;
+	24	char	5	nctr[5]	25	         		float radarcs;
+	28	float	1	radarcs	12	Radar Cross Section		unsigned int uint[3];
+	32	u int	3	uint[0]	13	Max Takeoff Weight		unsigned short int ushort2[11];
+	36	u int		uint[1]	14	Empty Weight		unsigned char uchar1[32];
+	40	u int		uint[2]	15	Fuel Load		unsigned short int ushort3[16];
+	44	u short	11	ushort2[0]	16	Fuel Rate		unsigned char uchar2[30];
+	46	u short		ushort2[1]	17	Engine Noise		
+	48	u short		ushort2[2]	18	Maximum Altitude		
+	50	u short		ushort2[3]	19	Minimum Altitude		
+	52	u short		ushort2[4]	20	Cruise Altitude		
+	54	u short		ushort2[5]	21	Maximum Speed		
+	56	u short		ushort2[6]	22	RCD Index		
+	58	u short		ushort2[7]	23	Crew		
+	60	u short		ushort2[8]	117-132	Rack Flags		
+	62	u short		ushort2[9]	101-116	Visibility Flags		
+	64	u short		ushort2[10]	24	Call Sign		
+	66	u char	32	uchar1[0-7]	26-33	To hit (x8)		
+	74	u char		uchar1[8-15]	34-41	Strength (x8)		
+	82	u char		uchar1[16-23]	42-49	Range (x8)		
+	90	u char		uchar1[24-31]	50-57	Detect (x8)		
+	98	u short	16	ushort3[0-15]	69-84	Weapon/HP Index	Text	
+	130	u char	30	uchar2[0-15]	85-100	Weapon/HP Ammunition	>127 == Hardpoint	
+	146	u char		uchar3[16-26]	58-68	Damage (x11)		
+	157	u char		uchar3[27]		Pad 1		
+	158	u char		uchar3[28]		Pad 2		
+	159	u char		uchar3[29]		Pad 3		
+					134	CT Index	Button	
+					135	RCD Index	Button	
+					136	Flags	Button	
+					137-152	Weapon/Hardpoint	Button(s)	
+						Used By	Button	
+								
+VSD			20					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	float	5	floats[0]	8	Range		float floats[5];
+	4	float		floats[1]	9	Scan Top	Angle	
+	8	float		floats[2]	10	Scan Bottom	Angle	
+	12	float		floats[3]	11	Scan Left	Angle	
+	16	float		floats[4]	12	Scan Right	Angle	
+								
+WCD			60					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	u short	6	ushort1[0]	8	CT Index		unsigned short int ushort1[6];
+	2	u short		ushort1[1]	9	Damage		char name[16];
+	4	u short		ushort1[2]	10	Explosion Type	Pop Up	unsigned int unk4;
+	6	u short		ushort1[3]	11	Unk1		unsigned char uchar2[10];
+	8	u short		ushort1[4]	12	Range		unsigned short int ushort2[9];
+	10	u short		ushort1[5]	13	Flags		
+	12	char	16	name[16]	34	Name		
+	28	u int	1	unk4	23	Pad		
+	32	u char	10	uchar2[0]	26	Hit Chance vs Static		
+	33	u char		uchar2[1]	27	Hit Chance vs Foot		
+	34	u char		uchar2[2]	28	Hit Chance vs Wheeled		
+	35	u char		uchar2[3]	29	Hit Chance vs Tracked		
+	36	u char		uchar2[4]	30	Hit Chance vs Low Air		
+	37	u char		uchar2[5]	31	Hit Chance vs Air		
+	38	u char		uchar2[6]	32	Hit Chance vs Naval		
+	39	u char		uchar2[7]	33	Hit Chance vs Rail		
+	40	u char		uchar2[8]	24	Fire Rate		
+	41	u char		uchar2[9]	25	Rareity		
+	42	u short	9	ushort2[0]	14	Guidance	Pop Up	
+	44	u short		ushort2[1]	15	Collective		
+	46	u short		ushort2[2]	16	SWD Index		
+	48	u short		ushort2[3]	17	Weight		
+	50	u short		ushort2[4]	18	Drag		
+	52	u short		ushort2[5]	19	Blast Radius		
+	54	u short		ushort2[6]	20	Seeker Radar		
+	56	u short		ushort2[7]	21	Vehicle List		
+	58	u short		ushort2[8]	22	Maximum Altitude		
+					35	CT Index	Button	
+					36	Seeker Radar	Button	
+					37	SWD Index	Button	
+					38	Flags	Button	
+						Used By	Button	
+								
+WLD			112					
+	Ind	Type	Num	Variable	Item #	Names	Remarks	Structure
+	0	char	16	name[16]	72	Name		char name[16];
+	16	u short	32	weapons[32]	40-71	Weapon Type	Text	unsigned short int weapons[32];
+	80	u char	32	wcount[32]	8-39	Weapon Count		unsigned char wcount[32];
+					73-104	Weapon Type	Button(s)	
+						Used By	Button	

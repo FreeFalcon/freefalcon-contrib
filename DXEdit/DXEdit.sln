@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXEdit", "DXEdit.vcproj", "{C084026C-A1DC-4612-B788-501F9C626752}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXEngine", "..\DXEngine\DXEngine.vcproj", "{64E7087E-A418-4920-A8E3-AB1190730223}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{C084026C-A1DC-4612-B788-501F9C626752}.Debug.ActiveCfg = Debug|Win32
+		{C084026C-A1DC-4612-B788-501F9C626752}.Debug.Build.0 = Debug|Win32
+		{C084026C-A1DC-4612-B788-501F9C626752}.Release.ActiveCfg = Release|Win32
+		{C084026C-A1DC-4612-B788-501F9C626752}.Release.Build.0 = Release|Win32
+		{64E7087E-A418-4920-A8E3-AB1190730223}.Debug.ActiveCfg = Debug|Win32
+		{64E7087E-A418-4920-A8E3-AB1190730223}.Debug.Build.0 = Debug|Win32
+		{64E7087E-A418-4920-A8E3-AB1190730223}.Release.ActiveCfg = Release|Win32
+		{64E7087E-A418-4920-A8E3-AB1190730223}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionItems) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,497 @@
+
+
+//Set TABs = 2
+
+
+// ============================================================================== doAutoShade
+void doAutoShade(int mode)
+{
+	int						c, d, e, f, cd, nN, ty, nVert, vmatch, tLock;
+	int						cc, tyx, m, nTouch, val, tNor, tTab, CFTemp;
+	float						ang, filterAng;
+	lodNode					*n, *nt, *nx;
+	lodPrimitive			*p, *px;
+	lodVector				*nor, norc;
+
+	if (mode ==1)
+	{
+		if(MessageBox(hwnd, "This function will combine shader normals of nodes which use the same \nvertex indicies, but face opposite directions (e.g., wings or tail).\nDo you wish to continue?", "AutoSahade and Normals Reducer", MB_ICONWARNING | MB_YESNO) == IDNO)
+				return;
+	}
+
+	// Get filter angle
+	CFTemp = CalledFrom;
+	CalledFrom = NODEROOT;
+	filterAng = DialogBox(ghInst, "FilterAngleDlg", hdlg, GetLODDlgProc);
+	if (filterAng == -1) return;
+	if(FilterAngle < 0.0 || FilterAngle > 180.0)
+	{
+		MessageBox(hwnd, "Filter must be between 0 and 180 degrees.", "Error", MB_ICONEXCLAMATION);
+		return;
+	}
+	filterAng = FilterAngle * kPI / 180.0;
+	nor = NULL;
+	nN = tNor = tTab = tLock = 0;
+	doGlobalNormalCalc(1);// Update all normals
+
+	// Put up progress bar
+	hPB= CreateDialog(ghInst, "ProgressBarDlg", hwnd, PBDlgProc);
+	SendMessage(hPB, WM_SETTEXT, (WPARAM) 0L, (LPARAM)(LPSTR) "Creating Shader Normals");
+	ShowWindow(hPB, SW_SHOW);
+	SendDlgItemMessage(hPB, PB_DATA_LOAD, PBM_SETPOS, (WPARAM) 0L, (LPARAM) 0L);
+
+	for(c=0;c<lodInfo.nNodes;c++)// Clear shaders to -1
+	{
+		SendDlgItemMessage(hPB, PB_DATA_LOAD, PBM_SETPOS, (WPARAM)(int) 100.0f*((float)c/(float)lodInfo.nNodes), (LPARAM) 0L);
+
+		nt = (lodNode *) ntree[c].m_ptr;
+		if(nt->vft != n1 && nt->vft != n2 && nt->vft != n4 && nt->vft != n12 && nt->vft != n13 && nt->vft != n14)
+			continue;
+		for(d=0;d<lodInfo.nNodes;d++)
+		{
+			n = (lodNode *) ntree[d].m_ptr;
+			if(n->vft != n7 && n->vft != n8 && n->vft != n9)
+				continue;
+			if(ntree[d].nPtr != c)
+				continue;
+			p = (lodPrimitive *) n->m_prim;// Side A
+			ty = p->type;
+			if(ty >= 14)
+				ty -= 12;
+			nVert = 0;
+			if(ty == 3 || ty == 7 || ty == 11)
+				nVert = 1;
+			else if(ty == 5 || ty == 9 || ty == 13)
+				nVert = p->nVert;
+			//Locked?
+			if (!n->bLockShaders)
+			{
+				for(e=0;e<nVert;e++)
+					p->m_dcPtr[e] = -1;
+			}
+			if(n->vft != n8)
+				continue;
+			p = (lodPrimitive *) n->m_prim2;// Side B
+			ty = p->type;
+			if(ty >= 14)
+				ty -= 12;
+			nVert = 0;
+			if(ty == 3 || ty == 7 || ty == 11)
+				nVert = 1;
+			else if(ty == 5 || ty == 9 || ty == 13)
+				nVert = p->nVert;
+			//Locked?
+			if (!n->bLockShaders)
+			{
+				for(e=0;e<nVert;e++)
+					p->m_dcPtr[e] = -1;
+			}
+		}
+	}
+	for(c=0;c<lodInfo.nNodes;c++)// Set shaders
+	{
+
+		nt = (lodNode *) ntree[c].m_ptr;
+		if(nt->vft != n1 && nt->vft != n2 && nt->vft != n4 && nt->vft != n12 && nt->vft != n13 && nt->vft != n14)
+			continue;
+		for(d=0;d<lodInfo.nNodes;d++)
+		{
+			SendDlgItemMessage(hPB, PB_DATA_LOAD, PBM_SETPOS, (WPARAM)(int) 100.0f*((float)d/(float)lodInfo.nNodes), (LPARAM) 0L);
+			n = (lodNode *) ntree[d].m_ptr;
+			if(n->vft != n7 && n->vft != n8 && n->vft != n9)
+				continue;
+			if(ntree[d].nPtr != c)
+				continue;
+			p = (lodPrimitive *) n->m_prim;// Side A
+			ty = p->type;
+			if(ty >= 14)
+				ty -= 12;
+			nVert = 0;
+			if(ty == 3 || ty == 7 || ty == 11)
+				nVert = 1;
+			else if(ty == 5 || ty == 9 || ty == 13)
+				nVert = p->nVert;
+			if(nVert == 1)
+			{
+				if(p->m_dcPtr[0] == -1)// New shader
+				{
+					val = doFindShader(nor,nN,p->normal.n[0],p->normal.n[1],p->normal.n[2]);
+					if(mode == 1 && val != -1)
+						p->m_dcPtr[0] = val;
+					else
+					{
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = p->normal.n[0];
+						nor[nN].y = p->normal.n[1];
+						nor[nN].z = p->normal.n[2];
+						p->m_dcPtr[0] = nN;
+						nN++;
+						tNor++;
+					}
+				}
+				else  
+					if(n->bLockShaders) // Locked shader
+					{
+						// Locked normals
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = nt->m_nPtr[p->m_dcPtr[0]].x;
+						nor[nN].y = nt->m_nPtr[p->m_dcPtr[0]].y;
+						nor[nN].z = nt->m_nPtr[p->m_dcPtr[0]].z;
+						p->m_dcPtr[0] = nN;
+						nN++;
+						tLock++;
+					}
+			}
+			else if(nVert != 0)
+			{
+				for(e=0;e<nVert;e++)
+				{
+//=========
+					if((p->m_dcPtr[e] > -1) && (n->bLockShaders)) // Locked shader
+					{
+						// Locked normals
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = nt->m_nPtr[p->m_dcPtr[e]].x;
+						nor[nN].y = nt->m_nPtr[p->m_dcPtr[e]].y;
+						nor[nN].z = nt->m_nPtr[p->m_dcPtr[e]].z;
+						p->m_dcPtr[e] = nN;
+						nN++;
+						tLock++;
+						m = 1;
+						continue;
+					}
+//=========
+					m = -1;
+					nTouch = 1;
+					norc.x = acos(p->normal.n[0]);
+					norc.y = acos(p->normal.n[1]);
+					norc.z = acos(p->normal.n[2]);
+					for(f=0;f<lodInfo.nNodes;f++)
+					{
+						if (d == f)
+							continue;
+						nx = (lodNode *) ntree[f].m_ptr;
+						if(nx->vft != n7 && nx->vft != n8 && nx->vft != n9)
+							continue;
+						if(ntree[f].nPtr != c)
+							continue;
+						px = (lodPrimitive *) nx->m_prim;// Side A
+						tyx = px->type;
+						if(tyx >= 14)
+							tyx -= 12;
+						if(tyx != 5 && tyx != 9 && tyx != 13)
+							continue;
+						// Bypass opposing nodes (same verts facing opposite directions
+						//===================
+						if (px->nVert == p->nVert)
+						{
+							vmatch = 0;
+							for(cc=0;cc<px->nVert;cc++)
+							{
+								for(cd=0;cd<p->nVert;cd++)
+								{
+									if(px->m_vertPtr[cc] == p->m_vertPtr[cd])
+										vmatch ++;
+								}
+							}
+							if (vmatch == px->nVert)
+								continue;
+						}
+						//===================
+						for(cc=0;cc<px->nVert;cc++)
+						{
+							if(px->m_vertPtr[cc] != p->m_vertPtr[e])
+								continue;
+							ang = acos(p->normal.n[0]*px->normal.n[0] + p->normal.n[1]*px->normal.n[1]
+														+ p->normal.n[2]*px->normal.n[2]);
+							if(px->m_vertPtr[cc] == 97 && p->m_vertPtr[e] == 97 && (d == 547 || f == 547))
+								tyx = px->type;
+							if(ang > filterAng)// greater than 135 (2.356)
+								continue;
+							if((tyx == 5 || tyx == 9 || tyx == 13) && px->m_dcPtr[cc] != -1)
+							{
+								p->m_dcPtr[e] = px->m_dcPtr[cc];
+								cc = f = 20000;
+								m = 1;
+							}
+							else
+							{
+								norc.x += acos(px->normal.n[0]);
+								norc.y += acos(px->normal.n[1]);
+								norc.z += acos(px->normal.n[2]);
+								nTouch++;
+								cc = 20000;
+							}
+						}
+						if(nx->vft != n8 || f == 20000)
+							continue;
+						px = (lodPrimitive *) nx->m_prim2;// Side B
+						tyx = px->type;
+						if(tyx >= 14)
+							tyx -= 12;
+						for(cc=0;cc<px->nVert;cc++)
+						{
+							if(px->m_vertPtr[cc] != p->m_vertPtr[e])
+								continue;
+							ang = acos(p->normal.n[0]*px->normal.n[0] + p->normal.n[1]*px->normal.n[1]
+														+ p->normal.n[2]*px->normal.n[2]);
+							if(ang > 2.356)// greater than 135
+								continue;
+							if((tyx == 5 || tyx == 9 || tyx == 13) && px->m_dcPtr[cc] != -1)
+							{
+								p->m_dcPtr[e] = px->m_dcPtr[cc];
+								cc = f = 20000;
+								m = 1;
+							}
+							else
+							{
+								norc.x += acos(px->normal.n[0]);
+								norc.y += acos(px->normal.n[1]);
+								norc.z += acos(px->normal.n[2]);
+								nTouch++;
+								cc = 20000;
+							}
+						}
+					}
+					if(m == -1)// No match
+					{
+						val = doFindShader(nor,nN,norc.x/nTouch,norc.y/nTouch,norc.z/nTouch);
+						if(mode == 1 && val != -1)
+							p->m_dcPtr[e] = val;
+						else
+						{
+							if(nor)
+								nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+							else
+								nor = (lodVector *) malloc (sizeof(lodVector));
+							nor[nN].x = cos(norc.x / nTouch);
+							nor[nN].y = cos(norc.y / nTouch);
+							nor[nN].z = cos(norc.z / nTouch);
+							p->m_dcPtr[e] = nN;
+							nN++;
+							tNor++;
+						}
+					}
+				}
+			}
+			if(n->vft != n8)
+				continue;
+			p = (lodPrimitive *) n->m_prim2;// Side B
+			ty = p->type;
+			if(ty >= 14)
+				ty -= 12;
+			nVert = 0;
+			if(ty == 3 || ty == 7 || ty == 11)
+				nVert = 1;
+			else if(ty == 5 || ty == 9 || ty == 13)
+				nVert = p->nVert;
+			if(nVert == 1)
+			{
+				if(p->m_dcPtr[0] == -1)// New shader
+				{
+					val = doFindShader(nor,nN,p->normal.n[0],p->normal.n[1],p->normal.n[2]);
+					if(mode == 1 && val != -1)
+						p->m_dcPtr[0] = val;
+					else
+					{
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = p->normal.n[0];
+						nor[nN].y = p->normal.n[1];
+						nor[nN].z = p->normal.n[2];
+						p->m_dcPtr[0] = nN;
+						nN++;
+						tNor++;
+					}
+				}
+				else  
+					if(n->bLockShaders) // Locked shader
+					{
+						// Locked normals
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = nt->m_nPtr[p->m_dcPtr[0]].x;
+						nor[nN].y = nt->m_nPtr[p->m_dcPtr[0]].y;
+						nor[nN].z = nt->m_nPtr[p->m_dcPtr[0]].z;
+						p->m_dcPtr[0] = nN;
+						tLock++;
+						nN++;
+					}
+			}
+			else if(nVert != 0)
+			{
+				for(e=0;e<nVert;e++)
+				{
+//=========
+					if((p->m_dcPtr[e] > -1) && (n->bLockShaders)) // Locked shader
+					{
+						// Locked normals
+						if(nor)
+							nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+						else
+							nor = (lodVector *) malloc (sizeof(lodVector));
+						nor[nN].x = nt->m_nPtr[p->m_dcPtr[e]].x;
+						nor[nN].y = nt->m_nPtr[p->m_dcPtr[e]].y;
+						nor[nN].z = nt->m_nPtr[p->m_dcPtr[e]].z;
+						p->m_dcPtr[e] = nN;
+						nN++;
+						tLock++;
+						m = 1;
+						continue;
+					}
+//=========
+					m = -1;
+					nTouch = 1;
+					norc.x = acos(p->normal.n[0]);
+					norc.y = acos(p->normal.n[1]);
+					norc.z = acos(p->normal.n[2]);
+					for(f=0;f<lodInfo.nNodes;f++)
+					{
+						if (d == f)
+							continue;
+						nx = (lodNode *) ntree[f].m_ptr;
+						if(nx->vft != n7 && nx->vft != n8 && nx->vft != n9)
+							continue;
+						if(ntree[f].nPtr != c)
+							continue;
+						px = (lodPrimitive *) nx->m_prim;// Side A
+						tyx = px->type;
+						if(tyx >= 14)
+							tyx -= 12;
+						// Bypass opposing nodes (same verts facing opposite directions
+						//===================
+						if (px->nVert == p->nVert)
+						{
+							vmatch = 0;
+							for(cc=0;cc<px->nVert;cc++)
+							{
+								for(cd=0;cd<p->nVert;cd++)
+								{
+									if(px->m_vertPtr[cc] != p->m_vertPtr[cd])
+										vmatch ++;
+								}
+							}
+							if (vmatch == px->nVert)
+								continue;
+						}
+						//===================
+						for(cc=0;cc<px->nVert;cc++)
+						{
+							if(px->m_vertPtr[cc] != p->m_vertPtr[e])
+								continue;
+							ang = acos(p->normal.n[0]*px->normal.n[0] + p->normal.n[1]*px->normal.n[1]
+													+ p->normal.n[2]*px->normal.n[2]);
+							if(ang > 2.356)// greater than 135
+								continue;
+							if((tyx == 5 || tyx == 9 || tyx == 13) && px->m_dcPtr[cc] != -1)
+							{
+								p->m_dcPtr[e] = px->m_dcPtr[cc];
+								cc = f = 20000;
+								m = 1;
+							}
+							else
+							{
+								norc.x += acos(px->normal.n[0]);
+								norc.y += acos(px->normal.n[1]);
+								norc.z += acos(px->normal.n[2]);
+								nTouch++;
+								cc = 20000;
+							}
+						}
+						if(nx->vft != n8 || f == 20000)
+							continue;
+						px = (lodPrimitive *) nx->m_prim2;// Side B
+						tyx = px->type;
+						if(tyx >= 14)
+							tyx -= 12;
+						if(tyx != 5 && tyx != 9 && tyx != 13)
+							continue;
+						for(cc=0;cc<px->nVert;cc++)
+						{
+							if(px->m_vertPtr[cc] != p->m_vertPtr[e])
+								continue;
+							ang = acos(p->normal.n[0]*px->normal.n[0] + p->normal.n[1]*px->normal.n[1]
+													+ p->normal.n[2]*px->normal.n[2]);
+							if(ang > 2.356)// greater than 135
+								continue;
+							if((tyx == 5 || tyx == 9 || tyx == 13) && px->m_dcPtr[cc] != -1)
+							{
+								p->m_dcPtr[e] = px->m_dcPtr[cc];
+								cc = f = 20000;
+								m = 1;
+							}
+							else
+							{
+								norc.x += acos(px->normal.n[0]);
+								norc.y += acos(px->normal.n[1]);
+								norc.z += acos(px->normal.n[2]);
+								nTouch++;
+								cc = 20000;
+							}
+						}
+					}
+					if(m == -1)// No match
+					{
+//						val = doFindShader(nor,nN,norc.x/nTouch,norc.y/nTouch,norc.z/nTouch);
+//						if(mode == 1 && val != -1)
+//							p->m_dcPtr[e] = val;
+//						else
+//						{
+							if(nor)
+								nor = (lodVector *) realloc (nor, (nN + 1) * sizeof(lodVector));
+							else
+								nor = (lodVector *) malloc (sizeof(lodVector));
+							nor[nN].x = cos(norc.x / nTouch);
+							nor[nN].y = cos(norc.y / nTouch);
+							nor[nN].z = cos(norc.z / nTouch);
+							p->m_dcPtr[e] = nN;
+							nN++;
+							tNor++;
+//						}
+					}
+				}
+			}
+		}
+
+		nt->nN = nN;// Set new normal table
+		if(nt->m_nPtr)
+			free(nt->m_nPtr);
+		nt->m_nPtr = nor;
+		nor = NULL;
+		nN = 0;
+		tTab++;
+	}
+	DestroyWindow(hPB);
+	CalledFrom = CFTemp;
+	sprintf(szMsg,"The model has been automatically shaded. %d new normals within %d tables.\n%d locked normals.",tNor,tTab,tLock);
+	MessageBox(hwnd, szMsg, "Auto Shader", MB_ICONINFORMATION);
+	lodInfo.mod = 1;
+} // doAutoShade()
+
+// ============================================================================== doFindShader
+int doFindShader(lodVector *v, int nN, float x, float y, float z)
+{
+	int				c;
+
+	for(c=0;c<nN;c++)
+	{
+		if(v[c].x == x && v[c].y == y && v[c].z == z)
+			return(c);
+	}
+	return(-1);
+}
+
+

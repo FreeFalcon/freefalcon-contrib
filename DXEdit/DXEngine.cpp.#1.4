@@ -1,0 +1,782 @@
+#include "StdAfx.h"
+#include <math.h>
+#include "LodConvert.h"
+#include "ObjectInstance.h"
+#include "DXVBManager.h"
+#include	"mmsystem.h"
+#include ".\dxengine.h"
+
+
+#define	CheckHR(x)	x
+
+// ********************************* THIS SECTION IS THE REAL ENGINE ********************************
+CDXEngine::CDXEngine(void)
+{
+}
+
+CDXEngine::~CDXEngine(void)
+{
+}
+
+
+void CDXEngine::Initialize(IDirect3DDevice7	*pD3DD)
+{
+	m_pD3DD=pD3DD;
+	m_LastFlags.w=0;
+	m_TexID=m_LastTexID=-1;
+	INIT_S_STACK(m_AlphaStack,MAX_ALPHA_SURFACES);
+	INIT_S_STACK(m_SolidStack,MAX_SOLID_SURFACES);
+	INIT_S_STACK(m_FrameStack,MAX_SOLID_SURFACES);
+	m_bCullEnable=true;
+	m_bDofMove=false;
+	m_LastFlags.w=0;
+	#ifdef	DEBUG_ENGINE	
+		UseZBias=true;
+	#endif
+	
+	ZeroMemory(&TheMaterial,sizeof(TheMaterial));
+
+}
+
+
+void CDXEngine::EnableCull(bool Status)
+{
+	m_bCullEnable=Status;
+}
+
+void CDXEngine::MoveDof(bool Status)
+{
+	m_bDofMove=Status;
+}
+
+
+// * Function referencing and loading textures given an Object Instance *
+void CDXEngine::LoadTextures(ObjectInstance *objInst)
+{
+	// Fetch the VB Data of this Model
+	VBItemType	VB;
+	TheVbManager.GetModelData(VB, objInst->id);
+
+	// Calculates the Texture Base Index in the Texture Bank
+	int	nTexsPerBank=VB.NTex/max(1,objInst->ParentObject->nTextureSets);
+	DWORD *texOffset = VB.Texs + objInst->TextureSet * nTexsPerBank;
+
+	// Register each texture for the Model ( and load it if not available ) and setup local Textures List
+	for(int a=0; a<nTexsPerBank; a++) TheTextureBank.Reference(*texOffset++);
+}
+
+
+// * Function Dereferencing textures given an Object Instance *
+void CDXEngine::UnLoadTextures(ObjectInstance *objInst)
+{
+	// Fetch the VB Data of this Model
+	VBItemType	VB;
+	TheVbManager.GetModelData(VB, objInst->id);
+
+	// Calculates the Texture Base Index in the Texture Bank
+	int	nTexsPerBank=VB.NTex/max(1,objInst->ParentObject->nTextureSets);
+	DWORD *texOffset = VB.Texs + objInst->TextureSet * nTexsPerBank;
+
+	// DeRegister each texture for the Model 
+	for(int a=0; a<nTexsPerBank; a++) TheTextureBank.Release(*texOffset++);
+}
+
+
+// * This Function just resets any Feature/lag fro a drawing
+void CDXEngine::ResetFeatures(void)
+{
+	// Reset Flags
+	m_LastFlags.w=0;
+
+	// Disables any Feature
+	m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE );
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_COLORVERTEX, FALSE );
+	DX->SelectTexture(NULL);
+	m_TexID=NULL;
+
+}
+
+
+
+
+
+// ********************* SURFACES STACK MANAGEMENT ***************************
+// function Pushing in a surface in Surface stack 
+void	CDXEngine::PushSurface(SurfaceStackType *Stack, VBItemType *VB, BYTE *Surface, D3DXMATRIX *State)
+{	
+	// if enough space Stores the surface Data
+	if(Stack->StackLevel<Stack->StackMax){
+		DWORD l=Stack->StackLevel++;
+		Stack->Stack[l].Vb=*VB;
+		Stack->Stack[l].State=*State;
+		Stack->Stack[l].Surface=Surface;
+		Stack->Stack[l].TexID=m_TexID;
+	}
+}
+
+
+// function Popping out a surface from Surface stack 
+bool	CDXEngine::PopSurface(SurfaceStackType *Stack, VBItemType *VB, BYTE **Surface, D3DXMATRIX *State)
+{	
+	// if stack not empty the assign variables with stacked data
+	if(Stack->StackLevel){
+		DWORD l=--Stack->StackLevel;
+		*VB=Stack->Stack[l].Vb;
+		*State=Stack->Stack[l].State;
+		*Surface=Stack->Stack[l].Surface;
+		m_TexID=Stack->Stack[l].TexID;
+		return true;
+	}
+	return false;
+}
+
+
+
+
+// funcion pushing in the Matrix Stack a Matrix
+void	CDXEngine::PushMatrix(D3DXMATRIX *p)
+{
+	StateStack[StateStackLevel]=*p;
+	StateStackLevel++;
+}
+
+// funcion popping out the Matrix Stack a Matrix
+void	CDXEngine::PopMatrix(D3DXMATRIX *p)
+{
+	if(StateStackLevel)	*p=StateStack[--StateStackLevel];
+}
+
+
+// Function switching the renderer State
+void	CDXEngine::SetRenderState(DXFlagsType Flags, bool Enable)
+{
+	// ********************** ENABLE BLOCK *********************
+	if(Enable){
+		
+		// **** LIGHT MODE INTIALIZATIONS *****
+		if(Flags.b.Lite){
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE );
+		    m_pD3DD->SetRenderState( D3DRENDERSTATE_EMISSIVEMATERIALSOURCE, D3DMCS_MATERIAL );
+		    m_pD3DD->SetRenderState( D3DRENDERSTATE_SPECULARMATERIALSOURCE, D3DMCS_COLOR2 );
+		}
+		// **************************************
+
+
+		// **** TEXTURE MODE INTIALIZATIONS *****
+		if(Flags.b.Texture){
+			m_pD3DD->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+		}
+		// **************************************
+		
+
+		// **** CHROMA KEYING INITIALIZATION ****
+		if(Flags.b.ChromaKey){
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE,TRUE);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHAREF,(DWORD)1);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHAFUNC,D3DCMP_GREATEREQUAL);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_SRCBLEND,D3DBLEND_SRCALPHA);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_DESTBLEND,D3DBLEND_INVSRCALPHA);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG1);
+		}
+		// **************************************
+
+
+
+		// *** ALPHA BLENDING INITIALIZATION ****
+		// The Alpha is checked whetever changed in new flags, or present but changed surface type
+		if(Flags.b.Alpha || (NODE.SURFACE->dwFlags.b.Alpha && ( Flags.b.VColor || Flags.b.Texture ))){
+			
+			// Enable Alpha Rendering
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_SRCBLEND,D3DBLEND_SRCALPHA);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_DESTBLEND,D3DBLEND_INVSRCALPHA);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE,TRUE);
+
+			// This is the only initialization that must know if dealing with Textures or Solid
+			if(NODE.SURFACE->dwFlags.b.Texture){
+				// if Texture with solid, then use VERTEX Color Alpha, not the texture one
+				if(NODE.SURFACE->dwFlags.b.VColor){
+					m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+					m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG1);
+					m_pD3DD->SetTextureStageState(0,D3DTSS_MIPFILTER,D3DTFP_LINEAR);
+				} else {
+					m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+					m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG1);
+					m_pD3DD->SetTextureStageState(0,D3DTSS_MIPFILTER,D3DTFP_LINEAR);
+				}
+			}
+		}
+		// **************************************
+	}
+
+	
+	// ********************** DISABLE BLOCK *********************
+	if(!Enable){
+
+		// **** LIGHT MODE DISABLES *****
+		if(Flags.b.Lite){
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE );
+		    m_pD3DD->SetRenderState( D3DRENDERSTATE_EMISSIVEMATERIALSOURCE, D3DMCS_COLOR2 );
+		    m_pD3DD->SetRenderState( D3DRENDERSTATE_SPECULARMATERIALSOURCE, D3DMCS_COLOR1 );
+
+		}
+		// **************************************
+
+
+		// **** TEXTURE MODE DISABLES *****
+		if(Flags.b.Texture){
+			m_pD3DD->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_DISABLE);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_DISABLE);
+			DX->SelectTexture(NULL);
+		}
+		// **************************************
+
+
+		// **** CHROMA KEYING DISABLES ****
+		if(Flags.b.ChromaKey){
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHAFUNC,D3DCMP_ALWAYS);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG1);
+		}
+		// **************************************
+
+
+		// ****** ALPHA BLENDING DISABLES *******
+		if(Flags.b.Alpha){
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE,FALSE);
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHAFUNC,D3DCMP_ALWAYS);
+			m_pD3DD->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG1);
+
+		}
+		// **************************************
+	}
+
+
+}
+
+
+
+// *************************************** DRAW SECTION **********************************************
+
+// ********************************
+// * the SURFACE DRAWING Function *
+// ********************************
+void CDXEngine::DrawSurface(VBItemType &VB)
+{
+	#ifdef	DEBUG_ENGINE	
+		DXDrawCalls++;
+		DXDrawVertices+=NODE.SURFACE->dwVCount;
+	#endif
+
+	DXFlagsType NewFlags;
+	NewFlags.w=NODE.SURFACE->dwFlags.w;
+
+	////////////////////// Test if any change in rendering mode /////////////
+	if(NewFlags.StateFlags!=m_LastFlags.StateFlags){
+
+		#ifdef	DEBUG_ENGINE	
+			DXStateChanges++;
+		#endif
+
+		// Selects changed Flags
+		DXFlagsType	ChangedFlags, DisabledFlags, EnabledFlags;
+		ChangedFlags.w=m_LastFlags.w^NewFlags.w;
+		DisabledFlags.w=ChangedFlags.w&(~NewFlags.w);
+		EnabledFlags.w=ChangedFlags.w&NewFlags.w;
+
+		// Check for changes in lags affecting RENDERER STATE
+		if(DisabledFlags.StateFlags) SetRenderState(DisabledFlags, DISABLE);
+		if(EnabledFlags.StateFlags) SetRenderState(EnabledFlags, ENABLE);
+
+		m_LastFlags.w=NewFlags.w;
+	}
+	
+
+	/////////////////////// TEXTURE CHANGE Feature //////////////////////////
+	DWORD	TexID=NODE.SURFACE->TexID[0];
+	if(TexID!=LastTexID){
+		#ifdef	DEBUG_ENGINE	
+			DXTexSwitches++;
+		#endif
+		LastTexID=TexID;
+		if(TexID!=-1) TheTextureBank.Select(m_TexUsed[TexID]);
+		
+		// TESTING - Disabled by Texture Stages, so avoid this
+		//else DX->SelectTexture(NULL);
+	}
+
+	
+	////////////////////// ZBIAS Checking done every time ////////////////////
+	#ifdef	DEBUG_ENGINE	
+		if(UseZBias && m_LastZBias!=NODE.SURFACE->dwzBias){
+			m_LastZBias=NODE.SURFACE->dwzBias;
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ZBIAS, m_LastZBias);
+		}
+	#else
+		if(m_LastZBias!=NODE.SURFACE->dwzBias){
+			m_LastZBias=NODE.SURFACE->dwzBias;
+			m_pD3DD->SetRenderState(D3DRENDERSTATE_ZBIAS, m_LastZBias);
+		}
+	#endif
+
+
+	///////////////// Bill Boarded Surfaces Management - START //////////////
+	if(NewFlags.b.BillBoard){
+		// Apply the BillBoard Transformation
+		D3DXMATRIX	R=AppliedState;
+		R.m00=R.m01=R.m02=0.0f;
+		R.m10=R.m11=R.m12=0.0f;
+		R.m20=R.m21=R.m22=0.0f;
+		R.m02=-1.0f; R.m11=R.m20=1.0f;
+		m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&R);
+	}
+
+
+	////////////////////// SPECULARITY INDEX management ///////////////////////////
+	if(NODE.SURFACE->SpecularIndex!=TheMaterial.power){
+		TheMaterial.power=NODE.SURFACE->SpecularIndex;
+		m_pD3DD->SetMaterial(&TheMaterial);
+	}
+
+
+	///////////////////////// Draw the Primitive /////////////////////////////////
+	if(NODE.SURFACE->dwPrimType==D3DPT_POINTLIST){
+		CheckHR(m_pD3DD->DrawPrimitiveVB( NODE.SURFACE->dwPrimType, VB.Vb, (DWORD)*((INT16*)&NODE.BYTE+sizeof(DxSurfaceType)), 
+											 NODE.SURFACE->dwVCount,0));
+	} else {
+		CheckHR(m_pD3DD->DrawIndexedPrimitiveVB( NODE.SURFACE->dwPrimType, VB.Vb, 0, VB.NVertices,
+										(LPWORD)(NODE.BYTE+sizeof(DxSurfaceType)), NODE.SURFACE->dwVCount, 0));
+	}
+
+	///////////////// Bill Boarded Surfaces Management - END ////////////////////
+	if(NewFlags.b.BillBoard){
+		// Get back to original transformation
+		m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&AppliedState);
+	}
+
+}
+
+
+DWORD	DofLevel=0;
+
+
+// ********************************
+// * DOF Process as in Falcon code*
+// ********************************
+
+float Process_DOFRot(float dofrot, int dofNumber, int flags, float min, float max, float multiplier, float unused)
+{
+	// Negated DOF
+	if(flags & XDOF_NEGATE) dofrot=-dofrot;
+
+	// DOF Limits
+	if(flags & XDOF_MINMAX) { if(dofrot<min) dofrot=min;  if(dofrot>max) dofrot=max; }
+
+	// Scaled 0-1 DOF
+	if(flags & XDOF_SUBRANGE && min!=max) {
+		dofrot-=min; dofrot/=max-min;
+		
+		// Angular DOF
+		if(flags & XDOF_ISDOF) dofrot*=(float)(3.14159/180.0);
+	}
+
+	// Final Scaling
+	return(dofrot*=multiplier);
+}
+
+
+
+
+void CDXEngine::AssignDOFRotation(D3DXMATRIX *R, ObjectInstance *objInst)
+{
+	float		DofRot;
+
+// ************ NORMAL ROTATION DOF **************
+	if(NODE.DOF->Type==ROTATE) {
+		DofRot= objInst->DOFValues[NODE.DOF->dofNumber].rotation;
+		// Apply DOF Rotation on X axis
+		D3DXMatrixRotationX(R, DofRot);
+		// Apply DOF transformation
+		D3DXMatrixMultiply(R, R, &NODE.DOF->rotation);
+	}
+
+
+
+
+// ************ EXTENDED ROTATION DOF **************
+	if(NODE.DOF->Type==XROTATE)	{
+		DofRot= Process_DOFRot(objInst->DOFValues[NODE.DOF->dofNumber].rotation, NODE.DOF->dofNumber, NODE.DOF->flags, 
+								NODE.DOF->min, NODE.DOF->max, NODE.DOF->multiplier, NODE.DOF->future);
+		// Apply DOF Rotation on X axis
+		D3DXMatrixRotationX(R, DofRot);
+		// Apply DOF transformation
+		D3DXMatrixMultiply(R, R, &NODE.DOF->rotation);
+	}
+
+
+
+// ************ TRANSLATION DOF - NO ROTATION ******
+	if(NODE.DOF->Type==TRANSLATE) D3DXMatrixIdentity(R);
+
+
+
+// *** SCALING DOF - ROTATION MATRIX USED TO SCALE ***
+	if(NODE.DOF->Type==SCALE) {
+		DofRot= Process_DOFRot(objInst->DOFValues[NODE.DOF->dofNumber].rotation, NODE.DOF->dofNumber, NODE.DOF->flags, 
+								NODE.DOF->min, NODE.DOF->max, NODE.DOF->multiplier, NODE.DOF->future);
+
+		// Apply Scaling at the destination Matrix
+		ZeroMemory(R, sizeof(D3DXMATRIX));
+		R->m00=1.0f - (1.0f - NODE.DOF->scale.x) * DofRot;
+		R->m11=1.0f - (1.0f - NODE.DOF->scale.y) * DofRot;
+		R->m22=1.0f - (1.0f - NODE.DOF->scale.z) * DofRot;
+		R->m33=1.0f;
+	}
+
+}
+
+
+void CDXEngine::AssignDOFTranslation(D3DXMATRIX *T, ObjectInstance *objInst)
+{
+	float		DofRot;
+
+	// *** NORMAL ROTATION DOF ***
+	if(NODE.DOF->Type==ROTATE) 	D3DXMatrixTranslation(T,	NODE.DOF->translation.x + objInst->DOFValues[NODE.DOF->dofNumber].translation,
+								NODE.DOF->translation.y, NODE.DOF->translation.z);
+
+	// *** EXTENDED ROTATION DOF ***
+	if(NODE.DOF->Type==XROTATE)	D3DXMatrixTranslation(T,	NODE.DOF->translation.x + objInst->DOFValues[NODE.DOF->dofNumber].translation,
+								NODE.DOF->translation.y, NODE.DOF->translation.z);
+
+	// *** TRANSLATION DOF - NO ROTATION ***
+	if(NODE.DOF->Type==TRANSLATE) {
+		DofRot= Process_DOFRot(objInst->DOFValues[NODE.DOF->dofNumber].rotation, NODE.DOF->dofNumber, NODE.DOF->flags, 
+								NODE.DOF->min, NODE.DOF->max, NODE.DOF->multiplier, NODE.DOF->future);
+		// Get DOF base translation
+		Ppoint P=NODE.DOF->translation;
+		// Apply DOF Scaling
+		P.x*=DofRot; P.y*=DofRot; P.z*=DofRot;
+		// Andcreate translation Matrix
+		D3DXMatrixTranslation(T, P.x, P.y, P.z);
+	}
+
+	// *** SCALING DOF ***
+	if(NODE.DOF->Type==SCALE)	D3DXMatrixTranslation(T, NODE.DOF->translation.x, NODE.DOF->translation.y, NODE.DOF->translation.z);
+
+
+		
+}
+
+
+
+// ********************************
+// * the NORMAL DOF Function      *
+// ********************************
+void CDXEngine::DOF(ObjectInstance *objInst, VBItemType &VB)
+{
+	D3DXMATRIX	R, T;
+
+#ifdef	DEBUG_ENGINE
+	if(m_bDofMove){
+		float	rot=sinf((float)timeGetTime()/1500.0f);
+		objInst->DOFValues[NODE.DOF->dofNumber].rotation=((float)PI/6.0f)*rot;
+	}													
+#endif
+
+#ifndef	DEBUG_ENGINE	
+	// * CONSISTENCY CHECK !!! *
+	if( NODE.DOF->dofNumber >= objInst->ParentObject->nDOFs ) return;
+#endif
+
+	// **** CALCULATE THE DOF IMPOSED ROTATION ****
+	AssignDOFRotation(&R, objInst);
+
+	// **** CALCULATE THE DOF IMPOSED TRANSLATION ****
+	AssignDOFTranslation(&T, objInst);
+
+	// Mix All and set to Actual Applied State
+	D3DXMatrixMultiply(&R, &R, &T);
+	D3DXMatrixMultiply(&AppliedState, &R, &AppliedState);
+}
+							
+
+
+
+
+
+
+
+
+
+// ********************************
+// * the DOF MANAGEMENT Function  *
+// ********************************
+void CDXEngine::DOFManage(ObjectInstance *objInst, VBItemType &VB)
+{
+
+
+	// Select the DOF Type
+	switch(NODE.DOF->Type){
+
+		case	NO_DOF:		break;
+
+		// * POSITIONAL DOF MANAGEMENT *
+		case	ROTATE:		
+		case	XROTATE:
+		case	TRANSLATE:
+		case	SCALE:		PushMatrix(&AppliedState);
+							#ifdef	DEBUG_ENGINE	
+								//if(NODE.SURFACE->dwFlags.b.Disable) break;
+							#endif
+
+							DOF(objInst, VB);
+							m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&AppliedState);
+							break;
+		
+		case	SWITCH:
+		case	XSWITCH:	SWITCHManage(objInst, VB);
+							break;
+
+	}
+
+
+}
+
+
+
+
+
+
+
+// ***********************************
+// * the switch MANAGEMENT Function  *
+// ***********************************
+void CDXEngine::SWITCHManage(ObjectInstance *objInst, VBItemType &VB)
+{
+	// Gets the Switch Number and value
+	DWORD	SWNumber=NODE.DOF->SwitchNumber;
+	DWORD	Value=objInst->SwitchValues[SWNumber];
+	BYTE	*LastAddr=NODE.BYTE;
+
+	if(NODE.DOF->Type==XSWITCH) Value=~Value;
+	// Traverse the Switch Items
+	while( NODE.DOF->SwitchNumber==SWNumber && (NODE.DOF->Type==SWITCH || NODE.DOF->Type==XSWITCH)){
+		// If value found then Exit here pointing the SWITCH, next to it is the SURFACE
+		if(Value&(1<<NODE.DOF->SwitchBranch)) { PushMatrix(&AppliedState);	return; }
+		NODE.BYTE+=NODE.DOF->dwDOFTotalSize;
+	}
+}
+
+
+
+
+
+
+
+
+// * The main Drawing function *
+void CDXEngine::DrawObject(ObjectInstance *objInst, D3DXMATRIX *RotMatrix, const Ppoint *Pos, const float scale)
+{
+	// The Stack For the State Transformations resetted
+	StateStackLevel=0;
+
+	// *********** Base transformations **********
+	D3DXMatrixTranslation(&State, Pos->x, Pos->y, Pos->z);
+	D3DXMatrixMultiply(&AppliedState, RotMatrix, &State);
+	m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&AppliedState );
+	// *******************************************
+
+
+	// *** Default engine initializations ***
+	// Initial zBias
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_ZBIAS, DEFAULT_ZBIAS );
+	m_LastZBias=DEFAULT_ZBIAS;
+	// Draw Mode
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID );
+    // Light On
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_LIGHTING, TRUE );
+	// Culling
+#ifndef	DEBUG_ENGINE	
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, D3DCULL_CW );
+#else
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, (m_bCullEnable)?D3DCULL_CW:D3DCULL_NONE );
+#endif
+	// ZBuffering
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_ZWRITEENABLE, TRUE );
+	m_pD3DD->SetRenderState(D3DRENDERSTATE_ZFUNC,D3DCMP_LESSEQUAL); 
+	// **************************************
+
+
+	// Reset any previous Feature
+	//ResetFeatures();
+
+	// Fetch the VB Data of this Model
+	VBItemType	VB;
+	TheVbManager.GetModelData(VB, objInst->id);
+
+	// Reset Features
+	m_LastFlags.w=0xffffffff;
+	SetRenderState(m_LastFlags, DISABLE);
+	m_LastFlags.w=0;
+
+	// Last texture Reset
+	LastTexID=-1;
+
+	// Consistency Check
+	if(!VB.Nodes) return;										
+
+	// Calculates the Texture Base Index in the Texture Bank
+	int	nTexsPerBank=VB.NTex/max(1,objInst->ParentObject->nTextureSets);
+	DWORD *texOffset = VB.Texs + objInst->TextureSet * nTexsPerBank;
+
+	// Register each texture for the Model ( and load it if not available ) and setup local Textures List
+	for(int a=0; a<nTexsPerBank; a++) m_TexUsed[a]=*texOffset++;
+
+
+//////////////////////// ********* HERE STARTS THE REAL NODES PARSING ***** ///////////////////////////////////
+//                                                                                                           //
+//                                                                                                           //
+//                                                                                                           //
+//                                                                                                           //
+//	// Starting address
+	NODE.BYTE=(BYTE*)VB.Nodes;
+
+	// Till end of Model
+	while(NODE.HEAD->Type!=DX_MODELEND){
+		
+		// Selects actions for each node
+		switch(NODE.HEAD->Type){
+
+			case	DX_ROOT:		break;
+
+			
+		// * SURFACE MANAGEMENT *	
+			case	DX_SURFACE:		
+									#ifdef DEBUG_ENGINE
+									if(NODE.SURFACE->dwFlags.b.Frame){
+											PushSurface(&m_FrameStack, &VB, NODE.BYTE, &AppliedState);
+											break;
+									}
+									if(NODE.SURFACE->dwFlags.b.Disable) break;
+									#endif
+
+									// Alpha Surfaces are deferred to another Draw
+									if(NODE.SURFACE->dwFlags.b.Alpha){
+										PushSurface(&m_AlphaStack, &VB, NODE.BYTE, &AppliedState);
+										break;
+									}
+									// Solid Surfaces are deferred to another Draw
+									if(NODE.SURFACE->dwFlags.b.VColor ){
+										PushSurface(&m_SolidStack, &VB, NODE.BYTE, &AppliedState);
+										break;
+									}
+									DrawSurface(VB);
+									break;
+
+			
+			case	DX_MATERIAL:	
+									break;
+
+			
+									// * Select the Texture based on previously referenced Textures *
+			case	DX_TEXTURE:		m_TexID=m_TexUsed[*NODE.TEXTURE->Tex];
+									// Forces Texture reload
+									m_LastFlags.b.Texture=0;
+									break;
+			
+			
+			case	DX_DOF:			DOFManage(objInst, VB);
+									break;
+
+			case	DX_ENDDOF:		PopMatrix(&AppliedState);
+									m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&AppliedState );
+									break;
+
+			case	DX_SWITCH:		
+									break;
+
+			case	DX_LIGHT:		break;
+
+			default			:		MessageBox(NULL, "Corrupted Model!!!", "DX Engine", NULL);
+			
+		}
+
+		VB.NNodes--;
+		NODE.BYTE+=NODE.HEAD->dwNodeSize;
+		if(VB.NNodes<0) MessageBox(NULL, "No Model End...", "Corrupted Model!!!", NULL);
+
+	}
+//                                                                                                           //
+//                                                                                                           //
+//                                                                                                           //
+//                                                                                                           //
+//                                                                                                           //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+
+
+
+void CDXEngine::DrawAlphaSurfaces(void)
+{
+	D3DXMATRIX	State;
+	VBItemType	VB;
+
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, D3DCULL_NONE );
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_ZWRITEENABLE, FALSE );
+
+
+	while(PopSurface(&m_AlphaStack, &VB, &NODE.BYTE, &State)){
+		if(AppliedState!=State) m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&State );
+		AppliedState=State;
+		if(NODE.SURFACE->dwFlags.b.Texture) m_LastFlags.b.Texture=0;
+		DrawSurface(VB);
+	}
+}
+
+
+void CDXEngine::DrawSolidSurfaces(void)
+{
+	D3DXMATRIX	State;
+	VBItemType	VB;
+
+#ifndef	DEBUG_ENGINE	
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, D3DCULL_CW );
+#else
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, (m_bCullEnable)?D3DCULL_CW:D3DCULL_NONE );
+#endif
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_ZWRITEENABLE, TRUE );
+
+
+	while(PopSurface(&m_SolidStack, &VB, &NODE.BYTE, &State)){
+		if(State!=AppliedState) m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&State );
+		AppliedState=State;
+		DrawSurface(VB);
+	}
+}
+
+
+#ifdef	DEBUG_ENGINE	
+void CDXEngine::DrawFrameSurfaces(void)
+{
+	D3DXMATRIX	State;
+	VBItemType	VB;
+
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_FILLMODE, D3DFILL_WIREFRAME );
+
+	m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE,FALSE);
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_CULLMODE, D3DCULL_NONE );
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_ZWRITEENABLE, FALSE );
+	m_pD3DD->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE );
+
+	while(PopSurface(&m_FrameStack, &VB, &NODE.BYTE, &State)){
+		if(State!=AppliedState) m_pD3DD->SetTransform( D3DTRANSFORMSTATE_WORLD, (LPD3DMATRIX)&State );
+		AppliedState=State;
+		DrawSurface(VB);
+	}
+	m_pD3DD->SetRenderState( D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID );
+}
+#endif
+

@@ -1,0 +1,1173 @@
+              3D Studio File Format Information (3dsinfo.txt)
+              -----------------------------------------------
+                                    by
+                              Jochen Wilhelmy
+                                  a.k.a.
+                                 digisnap
+                         digisnap@cs.tu-berlin.de
+                                06.08.1997
+
+
+Introduction
+============
+The information contained in this file is only collected by me. The credits
+go to the following people (in alphabetical order):
+
+    Christophe Chabanois (Wolverine / Apocalypse)
+    Jim Pitts
+    Niklas Beisert (Pascal / 4711)
+
+I think some more people did a good job in discovering unknown chunks, but
+I don't know them all. The layout is based on 3dsffo10.txt from Christophe
+Chabanois. I did not include any source code from this info, because it was
+of no use to me. I used only the standard character set for compatibility
+with other operating systems.
+
+My own extensions and corrections are:
+ - Corrected the hierarchy levels of some chunks, especially the material
+   editor chunk and the spotlight sub-chunks are at the wrong place in
+   some docs
+ - Documented some spotlight and material sub-chunks
+ - Documented most tracks
+ - Made a consistent layout for all chunk descriptions
+
+My reader is written in object oriented C++ and can read the chunks only if
+they are in the right hierarchy position. It keeps the structure of the 3DS
+file in memory and does not jam all vertices into one big array. It also
+can write this structure back to a 3DS file. This gave me the possibility
+to convert the data of my world-editor into a 3DS file to see where to
+place the animated objects. If you want to convert a mesh object into a 3DS
+file, you just need this chunk structure:
+
+0x4D4D            Main chunk
+  0x3D3D          3D editor chunk
+    0x4000        Object block (with name of your object)
+     0x4100       Triangular mesh
+       0x4110     Your vertices
+       0x4120     Your faces
+
+The internal reader of 3DS sets all other things to their defaults. The
+"auto edge" function is good if you dont't want to set the face flags.
+
+
+
+Index
+=====
+
+1. Fast reference : The chunk tree
+----------------------------------
+This will help you to find rapidly a chunk number and its description.
+
+2. A chunk - What's that ?
+--------------------------
+This will explain what a chunk is and help programmers understand the
+general concept of the 3DS file format.
+
+3. Data types
+-------------
+This short section will describe all data types used.
+
+4. Chunks description
+---------------------
+This is the most important part of the document. It describes the chunks.
+
+
+
+
+1. Fast reference : The chunk tree
+==================================
+
+
+Color chunks
+------------
+  0x0010 : Rgb (float)
+  0x0011 : Rgb (byte)
+  0x0012 : Rgb (byte) gamma corrected
+  0x0013 : Rgb (float) gamma corrected
+
+Percent chunks
+--------------
+  0x0030 : percent (int)
+  0x0031 : percent (float)
+
+0x4D4D : Main chunk
+-------------------
+  0x0002 : 3DS-Version
+
+  0x3D3D : 3D editor chunk
+  ------------------------
+    0x0100 : One unit
+    0x1100 : Background bitmap
+    0x1101 : Use background bitmap
+    0x1200 : Background color
+    0x1201 : Use background color
+    0x1300 : Gradient colors
+    0x1301 : Use gradient
+    0x1400 : Shadow map bias
+    0x1420 : Shadow map size
+    0x1450 : Shadow map sample range
+    0x1460 : Raytrace bias
+    0x1470 : Raytrace on
+    0x2100 : Ambient color
+
+    0x2200 : Fog
+      0x2210 : fog background
+    0x2201 : Use fog
+    0x2210 : Fog background
+
+    0x2300 : Distance queue
+      0x2310 : Dim background
+    0x2301 : Use distance queue
+    0x2302 : Layered fog options
+    0x2303 : Use layered fog
+
+    0x3D3E : Mesh version
+
+    0x4000 : Object block
+    ---------------------
+      0x4010 : Object hidden
+      0x4012 : Object doesn't cast
+      0x4013 : Matte object
+      0x4015 : External process on
+      0x4017 : Object doesn't receive shadows
+
+      0x4100 : Triangular mesh
+        0x4110 : Vertices list
+        0x4120 : Faces description
+          0x4130 : Faces material list
+        0x4140 : Mapping coordinates list
+          0x4150 : Smoothing group list
+        0x4160 : Local coordinate system
+        0x4165 : Object color in editor
+
+        0x4181 : External process name
+        0x4182 : External process parameters
+
+      0x4600 : Light
+        0x4610 : Spotlight
+          0x4627 : Spot raytrace
+          0x4630 : Light shadowed
+          0x4641 : Spot shadow map
+          0x4650 : Spot show cone
+          0x4651 : Spot is rectangular
+          0x4652 : Spot overshoot
+          0x4653 : Spot map
+          0x4656 : Spot roll
+          0x4658 : Spot ray trace bias
+
+        0x4620 : Light off
+        0x4625 : Attenuation on
+        0x4659 : Range start
+        0x465A : Range end
+        0x465B : Multiplier
+
+      0x4700 : Camera
+
+    0x7001 : Window settings
+      0x7011 : Window description #2 ...
+      0x7012 : Window description #1 ...
+      0x7020 : Mesh windows ...
+
+
+    0xAFFF : Material block
+    -----------------------
+      0xA000 : Material name
+
+      0xA010 : Ambient color
+      0xA020 : Diffuse color
+      0xA030 : Specular color
+
+      0xA040 : Shininess percent
+      0xA041 : Shininess strength percent
+
+      0xA050 : Transparency percent
+      0xA052 : Transparency falloff percent
+      0xA053 : Reflection blur percent
+
+      0xA081 : 2 sided
+      0xA083 : Add trans
+      0xA084 : Self illum
+      0xA085 : Wire frame on
+      0xA087 : Wire thickness
+      0xA088 : Face map
+      0xA08A : In tranc
+      0xA08C : Soften
+      0xA08E : Wire in units
+
+      0xA100 : Render type
+
+      0xA240 : Transparency falloff percent present
+      0xA250 : Reflection blur percent present
+      0xA252 : Bump map present (true percent)
+
+      0xA200 : Texture map 1
+      0xA33A : Texture map 2
+      0xA210 : Opacity map
+      0xA230 : Bump map
+      0xA33C : Shininess map
+      0xA204 : Specular map
+      0xA33D : Self illum. map
+      0xA220 : Reflection map
+      0xA33E : Mask for texture map 1
+      0xA340 : Mask for texture map 2
+      0xA342 : Mask for opacity map
+      0xA344 : Mask for bump map
+      0xA346 : Mask for shininess map
+      0xA348 : Mask for specular map
+      0xA34A : Mask for self illum. map
+      0xA34C : Mask for reflection map
+
+      Sub-chunks for all maps:
+        0xA300 : Mapping filename
+        0xA351 : Mapping parameters
+        0xA353 : Blur percent
+        0xA354 : V scale
+        0xA356 : U scale
+        0xA358 : U offset
+        0xA35A : V offset
+        0xA35C : Rotation angle
+        0xA360 : RGB Luma/Alpha tint 1
+        0xA362 : RGB Luma/Alpha tint 2
+        0xA364 : RGB tint R
+        0xA366 : RGB tint G
+        0xA368 : RGB tint B
+
+
+  0xB000 : Keyframer chunk
+  ------------------------
+    0xB001 : Ambient light information block
+    0xB002 : Mesh information block
+    0xB003 : Camera information block
+    0xB004 : Camera target information block
+    0xB005 : Omni light information block
+    0xB006 : Spot light target information block
+    0xB007 : Spot light information block
+    0xB008 : Frames (Start and End)
+      0xB010 : Object name, parameters and hierarchy father
+      0xB013 : Object pivot point
+      0xB015 : Object morph angle
+      0xB020 : Position track
+      0xB021 : Rotation track
+      0xB022 : Scale track
+      0xB023 : FOV track
+      0xB024 : Roll track
+      0xB025 : Color track
+      0xB026 : Morph track
+      0xB027 : Hotspot track
+      0xB028 : Falloff track
+      0xB029 : Hide track
+      0xB030 : Hierarchy position
+
+
+2. A chunk - What's that ?
+==========================
+
+1 - What is a chunk ?
+--------------------
+
+The 3D studio file format is compounded of several "chunks". What is a
+"chunk" ? Well, that's quite simple.
+
+Each chunk contains information : for example, it can contain colors,
+images ... All tools which use the "chunk" method make file formats like
+this:
+
+  1st chunk
+  2nd chunk
+  3rd chunk
+  ...
+  nth chunk
+
+
+2 - What is a "sub-chunk" ?
+---------------------------
+
+But, there are several problems with this format :
+ - The data are all at same level (an image is as important as the name of
+   an object ...)
+ - A general concept can't group several things.
+
+This is why there are "sub-chunks".
+
+In fact, each chunk can contain several sub-chunks :
+
+  1st chunk
+    1st sub-chunk
+    2nd sub-chunk
+  2nd chunk
+  3rd chunk
+    1st sub-chunk
+      1st sub-sub-chunk
+  ...
+  Nth chunk
+
+
+3 - How to read chunks ?
+------------------------
+
+This is the representation of a chunk :
+
+Offset   Length    Name
+
+0        2         Chunk-ID
+2        4         Chunk-length = 6+n+m
+6        n         Data
+6+n      m         Sub-chunks
+
+So don't forget to read or skip the sub-chunks if the header and data size
+is less than the chunk-length (6+n < chunk-length).
+
+
+3. Data types
+=============
+
+Name        Description
+
+word        2 byte
+dword       4 byte
+float       4 byte floating point number
+strz        zero terminated string (C-string)
+vector      3 floats (X,Y,Z)
+BOOLEAN     a BOOLEAN chunk acts as a flag and contains no data or sub-chunks
+
+degree      angle from 0 to 360 degree
+rad         angle from 0 to 2*pi
+
+Note: If X and Y are the horizontal plane and Z is the height in your
+world, you don't have to exchange Y and Z. Some other infos say that you
+have to exchange Y and Z only in the keyframer chunk, but you have to treat
+all vectors the same way.
+
+
+4. Chunks description
+=====================
+
+-----------------------------------------------------------------------------
+
+                               Color chunks
+                               ------------
+
+These chunks are used several times in the format, they are "global
+chunks".
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0010
+Name       : Rgb color (float format)
+Level      : global chunk
+Size       : 12
+Format     :
+
+  float    red
+  float    green
+  float    blue
+
+This chunk contains 3 floats : the red, green and blue components of a
+color. The values range from 0.0 to 1.0 (full intensity).
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0011
+Name       : Rgb color (byte format)
+Level      : global chunk
+Size       : 3
+Format     :
+
+  byte     red
+  byte     green
+  byte     blue
+
+This chunk contains 3 bytes : the red, green and blue components of a
+color. The values range from 0 to 255 (full intensity).
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0012
+Name       : Rgb color gamma corrected (byte format)
+Level      : global chunk
+Size       : 3
+Format     :
+
+  byte     red
+  byte     green
+  byte     blue
+
+This chunk contains 3 bytes : the red, green and blue components of a gamma
+corrected color. The values range from 0 to 255 (full intensity).
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0013
+Name       : Rgb color gamma corrected (float format)
+Level      : global chunk
+Size       : 12
+Format     :
+
+  float    red
+  float    green
+  float    blue
+
+This chunk contains 3 floats : the red, green and blue components of a
+gamma corrected color. The values range from 0.0 to 1.0 (full intensity).
+
+-----------------------------------------------------------------------------
+
+                              Percent chunks
+                              --------------
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0030
+Name       : percent (int format)
+Level      : global chunk
+Size       : 2
+Format     :
+
+  word     percent
+
+This chunk contains a word. The values range from 0 to 100.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0031
+Name       : percent (float format)
+Level      : global chunk
+Size       : 4
+Format     :
+
+  float    percent
+
+This chunk contains a float. The values range from 0 to 100.
+
+=============================================================================
+
+                            M A I N  C H U N K
+                            ==================
+
+=============================================================================
+Chunk #    : 0x4D4D
+Name       : Main chunk
+Level      : 0
+Size       : 0 + sub-chunks
+Father     : none
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0002
+Name       : 3DS-Version
+Level      : 1
+Size       : 4
+Father     : 0x4D4D (Main chunk)
+Format     :
+
+  dword    Version
+
+This dword specifies the number of your 3DS-Version.
+
+=============================================================================
+
+                        3 D  E D I T O R  C H U N K
+                        ===========================
+
+=============================================================================
+Chunk #    : 0x3D3D
+Name       : 3D Editor chunk
+Level      : 1
+Size       : 0 + sub-chunks
+Father     : 0x4D4D (Main chunk)
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x0100
+Name       : One unit
+Level      : 2
+Size       : 4
+Father     : 3D Editor chunk
+Format     :
+
+  float    One unit
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1100
+Name       : Background bitmap
+Level      : 2
+Size       : varying
+Father     : 3D Editor chunk
+Format     :
+
+  strz     Name
+
+This chunk contains the name of the background bitmap choosen in 3DS even
+if not used (i.e. you have selected a bitmap but you choose another thing).
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1101
+Name       : Use background bitmap
+Level      : 2
+Size       : 0
+Father     : 3D Editor chunk
+Format     : BOOLEAN
+
+This chunk is a flag indicating that the background bitmap (see chunk
+0x1100) is used. When this chunk is not present, the background bitmap is
+not used.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1200
+Name       : Background color
+Level      : 2
+Size       : 0 + sub-chunks
+Father     : 3D Editor chunk
+Format     :
+
+This chunk contains the color of the background even if not used. You must
+read the color sub-chunks. Generaly, the format is :
+ - Background color chunk (0x1200)
+ - RGB float color chunk (0x0010)
+ - RGB float gamma corected color chunk (0x0013)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1201
+Name       : Use background color
+Level      : 2
+Size       : 0
+Father     : 3D Editor chunk
+Format     : BOOLEAN
+
+This chunk is a flag indicating that the background color (see chunk
+0x1200) is used. When this chunk is not present, the background color is
+not used.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1300
+Name       : Background gradient colors
+Level      : 2
+Size       : 4 + sub-chunks
+Father     : 3D Editor chunk
+Format     :
+
+  float        Gradient position
+  color chunk  RGBF1
+  color chunk  RGBFG1
+  color chunk  RGBF2
+  color chunk  RGBFG2
+  color chunk  RGBF3
+  color chunk  RGBFG3
+
+RGBF = RGB float color CHUNK
+RGBFG = RGB gamma corrected float color CHUNK
+
+  So, if hexa you have something like that
+
+  00 13 76 00 00 00 21 CE 4A 3F 10 00 12 00 00 00 .....
+
+* 00 13 is the chunk ID (0x1300) and 76 00 00 00 is the length of this chunk.
+
+* 21 CE 4A 3F are values which contain the "position" of the three gradient
+  colors. It's a float (from 0.0 to 1.0) indicating the position of the
+  middle color.
+
+* 10 00 is the chunk ID (0x0010) of a rgb float color and 12 00 00 00 is the
+  length of this sub-chunk.
+-----------------------------------------------------------------------------
+
+Chunk #    : 0x1301
+Name       : Use background gradient colors
+Level      : 2
+Size       : 0
+Father     : 3D Editor chunk
+Format     : BOOLEAN
+
+This chunk is a flag indicating that the background gradient colors (see
+chunk 0x1300) are used. When this chunk is not present, the gradient
+colors are not used.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1400
+Name       : Shadow map bias
+Level      : 2
+Size       : 4
+Father     : 3D Editor chunk
+Format     :
+
+  float    Shadow map bias
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1420
+Name       : Shadow map size
+Level      : 2
+Size       : 2
+Father     : 3D Editor chunk
+Format     :
+
+  word     Shadow map size
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1450
+Name       : Shadow map sample range
+Level      : 2
+Size       : 4
+Father     : 3D Editor chunk
+Format     :
+
+  float    Shadow map sample range
+-----------------------------------------------------------------------------
+
+Chunk #    : 0x1460
+Name       : Raytrace bias
+Level      : 2
+Size       : 4
+Father     : 3D Editor chunk
+Format     :
+
+  float    Raytrace bias
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x1470
+Name       : Use raytrace
+Level      : 2
+Size       : 0
+Father     : 3D Editor chunk
+Format     : BOOLEAN
+
+This chunk is a flag indicating that raytrace (see chunk 0x1460) is used.
+When this chunk is not present, the raytrace is not used.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x2100
+Name       : Ambient color
+Level      : 2
+Size       : 0 + sub-chunk
+Father     : 3D Editor chunk
+Format     :
+
+This chunk contains a color chunk (in general RGB float)
+
+-----------------------------------------------------------------------------
+
+                           0x4000 : OBJECT BLOCK
+                           ---------------------
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4000
+Name       : OBJECT BLOCK
+Level      : 2
+Size       : varying + sub-chunks
+Father     : 0x3D3D (3D Editor chunk)
+Format     :
+
+  strz     Object name
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4010
+Name       : Object hidden
+Level      : 3
+Size       : 0
+Father     : 0x4000 (Object block)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4012
+Name       : Object doesn't cast
+Level      : 3
+Size       : 0
+Father     : 0x4000 (Object block)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4013
+Name       : Matte object
+Level      : 3
+Size       : 0
+Father     : 0x4000 (Object block)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4015
+Name       : External process on
+Level      : 3
+Size       : 0
+Father     : 0x4000 (Object block)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4017
+Name       : Object doesn't receive shadows
+Level      : 3
+Size       : 0
+Father     : 0x4000 (Object block)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+
+                         0x4100 : Triangular mesh
+                         ------------------------
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4100
+Name       : Triangular Mesh
+Level      : 3
+Size       : 0 + sub-chunks
+Father     : 0x4000 (Object block)
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4110
+Name       : Vertices list
+Level      : 4
+Size       : varying
+Father     : 0x4100 (Triangular mesh)
+Format     :
+
+  word     Number of vertices
+
+           Then, for each vertex
+  vector   Position
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4120
+Name       : Faces description
+Level      : 4
+Size       : varying + sub-chunks
+Father     : 0x4100 (Triangular mesh)
+Format     :
+
+  word     Number of faces
+
+           Then, for each face:
+  word     Vertex for corner A (number reference)
+  word     Vertex for corner B (number reference)
+  word     Vertex for corner C (number reference)
+  word     Face flag
+            * bit 0 : CA visible
+            * bit 1 : BC visible
+            * bit 2 : AB visible
+
+After datas, parse sub-chunks (0x4130, 0x4150).
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4130
+Name       : Faces material list
+Level      : 5
+Size       : varying
+Father     : 0x4120 (Faces description)
+Format     :
+
+  strz     Material name
+  word     Number of entries
+
+           Then, for each entry:
+  word     Face assigned to this material (number reference)
+
+I think the faces of one object can have different materials. Therefore,
+this chunk can be present more than once.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4140
+Name       : Mapping coordinates list for each vertex
+Level      : 4
+Size       : varying
+Father     : 0x4100 (Triangular mesh)
+Format     :
+
+  word     Number of vertices
+
+           Then, for each vertex
+  float    U coordinate
+  float    V coordinate
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4150
+Name       : Smoothing groups list
+Level      : 5
+Size       :
+Father     : 0x4120 (Faces description)
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4160
+Name       : Local coordinate system
+Level      : 4
+Size       : 48
+Father     : 0x4100 (Triangular mesh)
+Format     :
+
+  vector   X1
+  vector   X2
+  vector   X3
+  vector   O
+
+X1, X2 and X3 represent the axes, O the origin.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4165
+Name       : Object color in 3D Editor
+Level      : 4
+Size       : 1
+Father     : 0x4100 (Triangular mesh)
+Format     :
+
+  byte     Color
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4600
+Name       : Light
+Level      : 3
+Size       : 12 + sub-chunks
+Father     : 0x4000 (Object block)
+Format     :
+
+  vector   Position
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4610
+Name       : Spotlight
+Level      : 4
+Size       : 20 + sub-chunks
+Father     : 0x4600 (Light)
+Format     :
+
+  vector   Target
+  float    HotSpot
+  float    FallOff
+
+If this chunk is found, the light is a spot light and not an omni
+directional light.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4651
+Name       : Spot is rectangular
+Level      : 5
+Size       : 0
+Father     : 0x4610 (Spotlight)
+Format     : BOOLEAN
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4653
+Name       : Spot map
+Level      : 5
+Size       : varying
+Father     : 0x4610 (Spotlight)
+Format     :
+
+  strz     Filename
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4656
+Name       : Spot roll
+Level      : 5
+Size       : 4
+Father     : 0x4610 (Spotlight)
+Format     :
+
+  float    Roll (degree)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x4700
+Name       : CAMERA
+Level      : 3
+Size       : 32
+Father     : 0x4000 (Object block)
+Format     :
+
+  vector   Position
+  vector   Target
+  float    Bank (degree)
+  float    Lens
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x7001
+Name       : Window settings
+Level      : 2
+Size       : varying
+Father     : 0x3D3D (3D editor chunk)
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0x3D3E
+Name       : Mesh version
+Level      : 2
+Size       : 4
+Father     : 0x3D3D (3D editor chunk)
+Format     :
+
+  dword    Version
+
+-----------------------------------------------------------------------------
+
+                          0xAFFF : Material block
+                          -----------------------
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xAFFF
+Name       : Material editor chunk
+Level      : 2
+Size       : 0 + sub-chunks
+Father     : 0x3D3D (3D editor chunk)
+Format     :
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA000
+Name       : Material name
+Level      : 3
+Size       : varying
+Father     : 0xAFFF (Material block)
+Format     :
+
+  strz     Material name
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA010
+Name       : Material ambient color
+Level      : 3
+Size       : 0 + sub-chunks
+Father     : 0xAFFF (Material block)
+Format     :
+
+This chunk contains color chunks (in gen. rgb byte & rgb byte gamma)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA020
+Name       : Material diffuse color
+Level      : 3
+Size       : 0 + sub-chunks
+Father     : 0xAFFF (Material block)
+Format     :
+
+This chunk contains color chunks (in gen. rgb byte & rgb byte gamma)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA030
+Name       : Material specular color
+Level      : 3
+Size       : 0 + sub-chunks
+Father     : 0xAFFF (Material block)
+Format     :
+
+This chunk contains color chunks (in gen. rgb byte & rgb byte gamma)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA040
+Name       : Material shininess percent
+Level      : 3
+Size       : 0 + sub-chunk
+Father     : 0xAFFF (Material block)
+Format     :
+
+This chunk contains a percent chunk (in gen. int format)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA041
+Name       : Material shininess strength percent
+Level      : 3
+Size       : 0 + sub-chunk
+Father     : 0xAFFF (Material block)
+Format     :
+
+This chunk contains a percent chunk (in gen. int format)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA200 - 0xA34C
+Name       : Map
+Level      : 3
+Size       : 0 + sub-chunk
+Father     : 0xAFFF (Material block)
+Format     :
+
+These chunks define the different maps (see chunk tree). They contain the
+sub-chunks for all maps, such as mapping filename name or U/V scale.
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA300
+Name       : Mapping filename
+Level      : 4
+Size       : varying
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  strz     Filename
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA354
+Name       : V scale
+Level      : 4
+Size       : 4
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  float    V scale
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA356
+Name       : U scale
+Level      : 4
+Size       : 4
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  float    U scale
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA358
+Name       : U offst
+Level      : 4
+Size       : 4
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  float    U offset
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA35A
+Name       : V offst
+Level      : 4
+Size       : 4
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  float    V offset
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xA35A
+Name       : Rotation angle
+Level      : 4
+Size       : 4
+Father     : 0xA200 - 0xA34C (Map)
+Format     :
+
+  float    Rotation angle
+
+-----------------------------------------------------------------------------
+
+                      K E Y F R A M E R    C H U N K
+                      ------------------------------
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB000
+Name       : Keyframer
+Level      : 1
+Size       : 0 + sub-chunks
+Father     : 0x4D4D (Main chunk)
+Format     :
+
+The goal of the keyframer datas is to describe the move of
+ - The objects in the scene (like a cube ...)
+ - The lights (ambient, omni or spot)
+ - The cameras
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB001..0xB007
+Name       : Information block
+Level      : 2
+Size       : 0 + sub-chunks
+Father     : 0xB000 (Keyframer chunk)
+Format     :
+
+The information block is a chunk constituted of sub-chunks describing the
+move of a particular object, or camera:
+
+  0xB001 : Ambient light information block
+  0xB002 : Mesh information block
+  0xB003 : Camera information block
+  0xB004 : Camera target information block
+  0xB005 : Omni light information block
+  0xB006 : Spot light target information block
+  0xB007 : Spot light information block
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB008
+Name       : Frames (Start and End)
+Level      : 2
+Size       : 8
+Father     : 0xB000 (Keyframer chunk)
+Format     :
+
+  dword    Start
+  dword    End
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB010
+Name       : Object name, parameters and hierarchy father
+Level      : 3
+Size       : varying
+Father     : 0xB001..0xB007 Information block
+Format     :
+
+  strz     Object Name
+  word     Flag1
+            * Bit 11 : Hidden
+  word     Flag2
+            * Bit 0 : Show path
+            * Bit 1 : Animate smoothing
+            * Bit 4 : Object motion blur
+            * Bit 6 : Morph materials
+  word     Hierarchy father, link to the parent object (-1 for none)
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB013
+Name       : Object pivot point
+Level      : 3
+Size       : 12
+Father     : 0xB001..0xB007 Information block
+Format     :
+
+  vector   Pivot point
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB020..0xB029
+Name       : Track
+Level      : 3
+Size       : varying
+Father     : 0xB001..0xB007 Information block
+Format     :
+
+  word     Flag
+            * Bits 0-1 : 0 = single
+                         2 = repeat
+                         3 = loop
+
+            * Bit 3 : lock X
+            * Bit 4 : lock Y
+            * Bit 5 : lock Z
+
+            * Bit 7 : unlink X
+            * Bit 8 : unlink Y
+            * Bit 9 : unlink Z
+
+  8 byte   Unknown
+  dword    Number of keys in this track
+
+           Then, for each key:
+  dword    Key number (position in track)
+  word     Acceleration data present (flag)   Range:
+            * Bit 0 : Tension follows         [-1.0, 1.0]
+            * Bit 1 : Continuity follows      [-1.0, 1.0]
+            * Bit 2 : Bias follows            [-1.0, 1.0]
+            * Bit 3 : Ease to follows         [ 0.0, 1.0]
+            * Bit 4 : Ease from follows       [ 0.0, 1.0]
+  n floats Acceleration data
+  ?        Track specific data
+
+  Track specific data is:
+   0xB020 : Position track : 1 vector   Position
+   0xB021 : Rotation track : 1 float    Angle (rad)
+                             1 vector   Axis
+   0xB022 : Scale track    : 3 floats   Size
+   0xB023 : FOV track      : 1 float    Angle (degree)
+   0xB024 : Roll track     : 1 float    Angle (degree)
+   0xB025 : Color track    :
+   0xB026 : Morph track    : 1 strz     Object name
+   0xB027 : Hotspot track  : 1 float    Angle (degree)
+   0xB028 : Falloff track  : 1 float    Angle (degree)
+   0xB029 : Hide track     : nothing
+
+
+-----------------------------------------------------------------------------
+Chunk #    : 0xB030
+Name       : Hierarchy position
+Level      : 3
+Size       : 2
+Father     : 0xB001..0xB007 Information block
+Format     :
+
+  word     Hierarchy
+
+This word contains a unique value for the object and is used for the
+hierarchy tree links.
+
+-----------------------------------------------------------------------------
+<end>
